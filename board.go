@@ -1,11 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
-var board [8][8]string
+var Board [8][8]string
 
 func InitBoard() {
-	board = [8][8]string{
+	Board = [8][8]string{
 		{"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
 		{"bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"},
 		{" ", " ", " ", " ", " ", " ", " ", " "},
@@ -34,26 +36,22 @@ var ascii = map[string]string{
 }
 
 func PrintBoard() {
-	alternate := true
-
-	for i, row := range board {
+	for i, row := range Board {
+		// 8 to 1 on left side
 		fmt.Printf("%-*d", 2, 8-i)
+
 		for _, char := range row {
 			fmt.Printf("%-*s", 2, ascii[char])
-
-			alternate = !alternate
 		}
 
 		fmt.Println()
-
-		alternate = !alternate
 	}
+
+	// letters on bottom side
 
 	for _, char := range " abcdefgh" {
 		fmt.Printf("%-*c", 2, char)
 	}
-}
 
-func ClearTerminal() {
-	fmt.Print("\033[H\033[2J")
+	fmt.Println()
 }
