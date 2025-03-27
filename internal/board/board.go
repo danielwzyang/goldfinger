@@ -2,7 +2,28 @@ package board
 
 import "fmt"
 
-var Board [8][8]string
+var (
+	Board     [8][8]string
+	BlackKing [2]int
+	WhiteKing [2]int
+	ascii     = map[string]string{
+		"wK": "♔",
+		"wQ": "♕",
+		"wR": "♖",
+		"wB": "♗",
+		"wN": "♘",
+		"wP": "♙",
+
+		"bK": "♚",
+		"bQ": "♛",
+		"bR": "♜",
+		"bB": "♝",
+		"bN": "♞",
+		"bP": "♟",
+
+		" ": " ",
+	}
+)
 
 func Init() {
 	Board = [8][8]string{
@@ -15,24 +36,9 @@ func Init() {
 		{"wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"},
 		{"wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"},
 	}
-}
 
-var ascii = map[string]string{
-	"wK": "♔",
-	"wQ": "♕",
-	"wR": "♖",
-	"wB": "♗",
-	"wN": "♘",
-	"wP": "♙",
-
-	"bK": "♚",
-	"bQ": "♛",
-	"bR": "♜",
-	"bB": "♝",
-	"bN": "♞",
-	"bP": "♟",
-
-	" ": " ",
+	BlackKing = [2]int{0, 4}
+	WhiteKing = [2]int{7, 4}
 }
 
 func Print() {

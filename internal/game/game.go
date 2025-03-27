@@ -32,6 +32,6 @@ func Start() {
 			valid, err = board.ValidInput(move, playerColor)
 		}
 
-		board.ParseMove(move)
+		board.ParseMove(move, playerColor)
 	}
 }
