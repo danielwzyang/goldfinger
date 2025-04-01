@@ -52,6 +52,7 @@ func InputMove(color byte) {
 			piece = 'P'
 			finalPos = alphaToNumeric(move)
 
+			// promoting pawn
 			if (color == 'w' && finalPos[0] == 0) || (color == 'b' && finalPos[0] == 7) {
 				promotion = true
 			}
@@ -60,6 +61,7 @@ func InputMove(color byte) {
 			finalPos = alphaToNumeric(move[1:])
 		}
 
+		// getting pieces that could move to the described position
 		possiblePieces := board.GetPossiblePieces(color, piece, finalPos[0], finalPos[1])
 
 		if len(possiblePieces) == 0 {
@@ -67,8 +69,10 @@ func InputMove(color byte) {
 			continue
 		}
 
-		if len(possiblePieces) == 2 {
+		if len(possiblePieces) > 1 {
 			fmt.Println("Multiple pieces can make this move. Type the position of the piece you want to move.")
+
+			// input position for disambiguation
 			move = Input()
 			for !fitsRegexPattern(move, "^[a-h][1-8]$") || !board.ContainsPosition(possiblePieces, alphaToNumeric(move)) {
 				fmt.Println("Please type a valid position.")
@@ -77,28 +81,37 @@ func InputMove(color byte) {
 			numeric := alphaToNumeric(move)
 			board.MakeMove(numeric[0], numeric[1], finalPos[0], finalPos[1], false)
 
+			// handle promotion
 			if promotion {
+				// input piece
 				fmt.Println("What piece do you want to promote your pawn to? (N | B | R | Q)")
 				newPiece := Input()
 				for !fitsRegexPattern(newPiece, "^[NBRQ]$") {
 					fmt.Println("Please type a valid piece.")
 					newPiece = Input()
 				}
+
+				// update piece
 				board.Board[finalPos[0]][finalPos[1]] = string(color) + newPiece
 			}
 
 			return
 		}
 
+		// there's only one possible piece that can make the move
 		board.MakeMove(possiblePieces[0][0], possiblePieces[0][1], finalPos[0], finalPos[1], false)
 
+		// handle promotion
 		if promotion {
+			// input piece
 			fmt.Println("What piece do you want to promote your pawn to? (N | B | R | Q)")
 			newPiece := Input()
 			for !fitsRegexPattern(newPiece, "^[NBRQ]$") {
 				fmt.Println("Please type a valid piece. You can promote to N, B, R, or Q.")
 				newPiece = Input()
 			}
+
+			// update piece
 			board.Board[finalPos[0]][finalPos[1]] = string(color) + newPiece
 		}
 
