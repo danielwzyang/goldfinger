@@ -1,75 +1,36 @@
 package board
 
-import (
-	"regexp"
-)
+func GetPossiblePieces(color byte, piece byte, rf int, cf int) [][2]int {
+	possiblePieces := [][2]int{}
+	for r, x := range Board {
+		for c, y := range x {
+			if y[0] == color && y[1] == piece && IsValidMove(r, c, rf, cf) {
+				MakeMove(r, c, rf, cf, true)
 
-func ValidInput(move string, player byte) (bool, string) {
-	// castling
-	if move == "0-0" {
-		if !validKingSideCastle(player) {
-			return false, "You cannot castle kingside."
+				if !inCheck(color) {
+					possiblePieces = append(possiblePieces, [2]int{r, c})
+				}
+
+				MakeMove(rf, cf, r, c, true)
+			}
 		}
-		return true, ""
-	}
-	if move == "0-0-0" {
-		if !validQueenSideCastle(player) {
-			return false, "You cannot castle queenside."
-		}
-		return true, ""
 	}
 
-	// basic notation for moves
-	regexPattern := "^([a-h][1-8])-([a-h][1-8])$"
-
-	regex := regexp.MustCompile(regexPattern)
-	if !regex.MatchString(move) {
-		return false, "Please follow the format described above. Read /docs/inputs.md for help."
-	}
-
-	// turning the moves into matrix coordinates
-	alpha1 := move[:2]
-	alpha2 := move[3:]
-
-	p1 := alphaToNumeric(alpha1)
-	p2 := alphaToNumeric(alpha2)
-
-	if Board[p1[0]][p1[1]][0] == ' ' {
-		return false, "There is no piece at " + alpha1 + "."
-	}
-
-	// if the piece isn't the player's
-	if Board[p1[0]][p1[1]][0] != player {
-		return false, "You do not own the piece at " + alpha1 + "."
-	}
-
-	// the position it's trying to move isn't valid
-	if !isValidMove(p1[0], p1[1], p2[0], p2[1]) {
-		return false, "The piece at " + alpha1 + " cannot move to " + alpha2 + "."
-	}
-
-	MakeMove(p1[0], p1[1], p2[0], p2[1], true)
-
-	if inCheck(player) {
-		MakeMove(p2[0], p2[1], p1[0], p1[1], true)
-		return false, "Your king is still in check!"
-	}
-
-	MakeMove(p2[0], p2[1], p1[0], p1[1], true)
-
-	return true, ""
+	return possiblePieces
 }
 
-func isValidMove(r1 int, c1 int, r2 int, c2 int) bool {
-	validMoves := getValidMoves(r1, c1)
-
-	for _, move := range validMoves {
-		if move[0] == r2 && move[1] == c2 {
+func ContainsPosition(positions [][2]int, position [2]int) bool {
+	for _, item := range positions {
+		if item[0] == position[0] && item[1] == position[1] {
 			return true
 		}
 	}
 
 	return false
+}
+
+func IsValidMove(r1 int, c1 int, r2 int, c2 int) bool {
+	return ContainsPosition(getValidMoves(r1, c1), [2]int{r2, c2})
 }
 
 func getValidMoves(r int, c int) [][2]int {
@@ -152,229 +113,7 @@ func isValidSquare(color byte, r int, c int) bool {
 	}
 }
 
-func getValidPawnMoves(color byte, r int, c int) [][2]int {
-	moves := [][2]int{}
-
-	if color == 'w' {
-		// move forward
-		if Board[r-1][c] == " " {
-			moves = append(moves, [2]int{r - 1, c})
-		}
-
-		// move forward two
-		if r == 6 && Board[r-2][c] == " " {
-			moves = append(moves, [2]int{r - 2, c})
-		}
-
-		// capture left
-		if c != 0 && Board[r-1][c-1][0] == 'b' {
-			moves = append(moves, [2]int{r - 1, c - 1})
-		}
-
-		// capture right
-		if c != 7 && Board[r-1][c+1][0] == 'b' {
-			moves = append(moves, [2]int{r - 1, c + 1})
-		}
-	} else {
-		// move forward
-		if Board[r+1][c] == " " {
-			moves = append(moves, [2]int{r + 1, c})
-		}
-
-		// move forward two
-		if r == 1 && Board[r+2][c] == " " {
-			moves = append(moves, [2]int{r + 2, c})
-		}
-
-		// capture left
-		if c != 0 && Board[r+1][c-1][0] == 'w' {
-			moves = append(moves, [2]int{r + 1, c - 1})
-		}
-
-		// capture right
-		if c != 7 && Board[r+1][c+1][0] == 'w' {
-			moves = append(moves, [2]int{r + 1, c + 1})
-		}
-	}
-
-	return moves
-}
-
-func getValidKnightMoves(color byte, r int, c int) [][2]int {
-	knightMoves := [][2]int{
-		{2, 1},
-		{1, 2},
-		{-2, 1},
-		{-1, 2},
-		{2, -1},
-		{1, -2},
-		{-2, -1},
-		{-1, -2},
-	}
-
-	moves := [][2]int{}
-
-	for _, move := range knightMoves {
-		if isValidSquare(color, r+move[0], c+move[1]) {
-			moves = append(moves, [2]int{r + move[0], c + move[1]})
-		}
-	}
-
-	return moves
-}
-
-func getValidRookMoves(color byte, r int, c int) [][2]int {
-	moves := [][2]int{}
-
-	// upwards
-	for i := r - 1; i >= 0; i-- {
-		if !isValidSquare(color, i, c) {
-			break
-		}
-
-		moves = append(moves, [2]int{i, c})
-
-		// capture
-		if Board[i][c][0] != color {
-			break
-		}
-	}
-
-	// downwards
-	for i := r + 1; i < 8; i++ {
-		if !isValidSquare(color, i, c) {
-			break
-		}
-
-		moves = append(moves, [2]int{i, c})
-
-		// capture
-		if Board[i][c][0] != color {
-			break
-		}
-	}
-
-	// leftwards
-	for i := c - 1; i >= 0; i-- {
-		if !isValidSquare(color, r, i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r, i})
-
-		// capture
-		if Board[r][i][0] != color {
-			break
-		}
-	}
-
-	// rightwards
-	for i := c + 1; i < 8; i++ {
-		if !isValidSquare(color, r, i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r, i})
-
-		// capture
-		if Board[r][i][0] != color {
-			break
-		}
-	}
-
-	return moves
-}
-
-func getValidBishopMoves(color byte, r int, c int) [][2]int {
-	moves := [][2]int{}
-
-	// top left
-	for i := 1; i < 8; i++ {
-		if !isValidSquare(color, r-i, c-i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r - i, c - i})
-
-		// capture
-		if Board[r-i][c-i][0] != color {
-			break
-		}
-	}
-
-	// top right
-	for i := 1; i < 8; i++ {
-		if !isValidSquare(color, r-i, c+i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r - i, c + i})
-
-		// capture
-		if Board[r-i][c+i][0] != color {
-			break
-		}
-	}
-
-	// bottom left
-	for i := 1; i < 8; i++ {
-		if !isValidSquare(color, r+i, c-i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r + i, c - i})
-
-		// capture
-		if Board[r+i][c-i][0] != color {
-			break
-		}
-	}
-
-	// bottom right
-	for i := 1; i < 8; i++ {
-		if !isValidSquare(color, r+i, c+i) {
-			break
-		}
-
-		moves = append(moves, [2]int{r + i, c + i})
-
-		// capture
-		if Board[r+i][c+i][0] != color {
-			break
-		}
-	}
-
-	return moves
-}
-
-func getValidQueenMoves(color byte, r int, c int) [][2]int {
-	return append(getValidRookMoves(color, r, c), getValidBishopMoves(color, r, c)...)
-}
-
-func getValidKingMoves(color byte, r int, c int) [][2]int {
-	kingMoves := [][2]int{
-		{-1, -1},
-		{-1, 0},
-		{-1, 1},
-		{0, -1},
-		{0, 1},
-		{1, -1},
-		{1, 0},
-		{1, 1},
-	}
-
-	moves := [][2]int{}
-
-	for _, move := range kingMoves {
-		if isValidSquare(color, r+move[0], c+move[1]) {
-			moves = append(moves, [2]int{r + move[0], c + move[1]})
-		}
-	}
-
-	return moves
-}
-
-func validKingSideCastle(color byte) bool {
+func ValidKingSideCastle(color byte) bool {
 	if inCheck(color) {
 		return false
 	}
@@ -413,7 +152,7 @@ func validKingSideCastle(color byte) bool {
 	return true
 }
 
-func validQueenSideCastle(color byte) bool {
+func ValidQueenSideCastle(color byte) bool {
 	if inCheck(color) {
 		return false
 	}
