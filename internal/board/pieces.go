@@ -10,7 +10,7 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 		}
 
 		// move forward two
-		if r == 6 && Board[r-2][c] == " " {
+		if r == 6 && Board[5][c] == " " && Board[4][c] == " " {
 			moves = append(moves, [2]int{r - 2, c})
 		}
 
@@ -30,7 +30,7 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 		}
 
 		// move forward two
-		if r == 1 && Board[r+2][c] == " " {
+		if r == 1 && Board[2][c] == " " && Board[3][c] == " " {
 			moves = append(moves, [2]int{r + 2, c})
 		}
 

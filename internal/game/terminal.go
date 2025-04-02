@@ -29,7 +29,7 @@ func header() {
 	fmt.Println()
 }
 
-func StartOpts(player *byte) {
+func StartOpts(player *byte, engineType *byte) {
 	Clear()
 
 	fmt.Println("What color are you playing? (b | w)")
@@ -40,4 +40,15 @@ func StartOpts(player *byte) {
 		color = Input()
 	}
 	*player = color[0]
+
+	fmt.Println()
+
+	fmt.Println("What type of engine do you want? (r | n)")
+	fmt.Println("An 'r' type engine will play random moves. An 'n' type engine will employ an algorithm.")
+	type_ := Input()
+	for type_ != "r" && type_ != "n" {
+		fmt.Println("Please enter r or n.")
+		type_ = Input()
+	}
+	*engineType = type_[0]
 }

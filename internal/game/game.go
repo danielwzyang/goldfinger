@@ -4,20 +4,39 @@ import (
 	"fmt"
 
 	"danielyang.cc/chess/internal/board"
+	"danielyang.cc/chess/internal/engine"
+)
+
+var (
+	playerColor byte
+	engineType  byte
 )
 
 func Start() {
 	board.Init()
 
-	var playerColor byte
-	StartOpts(&playerColor)
+	StartOpts(&playerColor, &engineType)
 
 	var enemyColor byte = 'b'
 	if playerColor == 'b' {
 		enemyColor = 'w'
 	}
 
+	engine.Init(engineType, enemyColor)
+
+	var engineLastMove string
+	var engineTime string
+
+	tick := 0
+
+	playerTick := 1
+	if playerColor == 'b' {
+		playerTick = 0
+	}
+
 	for {
+		tick++
+
 		Clear()
 
 		board.Print()
@@ -28,6 +47,16 @@ func Start() {
 			return
 		}
 
+		if tick%2 != playerTick {
+			engineLastMove, engineTime = engine.MakeMove()
+			continue
+		}
+
+		if tick != 1 {
+			fmt.Println("The engine played " + engineLastMove + ".")
+			fmt.Println("It thought for " + engineTime + ".")
+		}
+
 		if board.InCheck('b') {
 			fmt.Println("Black is in check.")
 		}
@@ -36,10 +65,9 @@ func Start() {
 			fmt.Println("White is in check.")
 		}
 
+		fmt.Println()
 		fmt.Println("Enter your move. Read /docs/input.md for help.")
-
-		InputMove(playerColor)
-		InputMove(enemyColor)
+		InputMove()
 	}
 }
 

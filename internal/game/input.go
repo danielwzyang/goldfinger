@@ -15,26 +15,26 @@ func alphaToNumeric(position string) [2]int {
 	return [2]int{56 - int(runes[1]), int(runes[0]) - 97}
 }
 
-func InputMove(color byte) {
+func InputMove() {
 	for {
 		move := Input()
 
 		// castling
 		if move == "0-0" {
-			if !board.ValidKingSideCastle(color) {
+			if !board.ValidKingSideCastle(playerColor) {
 				fmt.Println("You cannot castle kingside.")
 				continue
 			}
-			board.KingsideCastle(color)
+			board.KingsideCastle(playerColor)
 			return
 		}
 
 		if move == "0-0-0" {
-			if !board.ValidQueenSideCastle(color) {
+			if !board.ValidQueenSideCastle(playerColor) {
 				fmt.Println("You cannot castle queenside.")
 				continue
 			}
-			board.QueensideCastle(color)
+			board.QueensideCastle(playerColor)
 			return
 		}
 
@@ -53,7 +53,7 @@ func InputMove(color byte) {
 			finalPos = alphaToNumeric(move)
 
 			// promoting pawn
-			if (color == 'w' && finalPos[0] == 0) || (color == 'b' && finalPos[0] == 7) {
+			if (playerColor == 'w' && finalPos[0] == 0) || (playerColor == 'b' && finalPos[0] == 7) {
 				promotion = true
 			}
 		} else {
@@ -62,7 +62,7 @@ func InputMove(color byte) {
 		}
 
 		// getting pieces that could move to the described position
-		possiblePieces := board.GetPossiblePieces(color, piece, finalPos[0], finalPos[1])
+		possiblePieces := board.GetPossiblePieces(playerColor, piece, finalPos[0], finalPos[1])
 
 		if len(possiblePieces) == 0 {
 			fmt.Println("You cannot make this move.")
@@ -92,7 +92,7 @@ func InputMove(color byte) {
 				}
 
 				// update piece
-				board.Board[finalPos[0]][finalPos[1]] = string(color) + newPiece
+				board.Board[finalPos[0]][finalPos[1]] = string(playerColor) + newPiece
 			}
 
 			return
@@ -112,7 +112,7 @@ func InputMove(color byte) {
 			}
 
 			// update piece
-			board.Board[finalPos[0]][finalPos[1]] = string(color) + newPiece
+			board.Board[finalPos[0]][finalPos[1]] = string(playerColor) + newPiece
 		}
 
 		return
