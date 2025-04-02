@@ -1,6 +1,6 @@
 package board
 
-func getValidPawnMoves(color byte, r int, c int) [][2]int {
+func getPawnMoves(color byte, r int, c int) [][2]int {
 	moves := [][2]int{}
 
 	if color == 'w' {
@@ -48,7 +48,7 @@ func getValidPawnMoves(color byte, r int, c int) [][2]int {
 	return moves
 }
 
-func getValidKnightMoves(color byte, r int, c int) [][2]int {
+func getKnightMoves(color byte, r int, c int) [][2]int {
 	knightMoves := [][2]int{
 		{2, 1},
 		{1, 2},
@@ -71,7 +71,7 @@ func getValidKnightMoves(color byte, r int, c int) [][2]int {
 	return moves
 }
 
-func getValidRookMoves(color byte, r int, c int) [][2]int {
+func getRookMoves(color byte, r int, c int) [][2]int {
 	moves := [][2]int{}
 
 	// upwards
@@ -83,7 +83,7 @@ func getValidRookMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{i, c})
 
 		// capture
-		if Board[i][c][0] != color {
+		if Board[i][c][0] != ' ' && Board[i][c][0] != color {
 			break
 		}
 	}
@@ -97,7 +97,7 @@ func getValidRookMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{i, c})
 
 		// capture
-		if Board[i][c][0] != color {
+		if Board[i][c][0] != ' ' && Board[i][c][0] != color {
 			break
 		}
 	}
@@ -111,7 +111,7 @@ func getValidRookMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r, i})
 
 		// capture
-		if Board[r][i][0] != color {
+		if Board[r][i][0] != ' ' && Board[r][i][0] != color {
 			break
 		}
 	}
@@ -125,7 +125,7 @@ func getValidRookMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r, i})
 
 		// capture
-		if Board[r][i][0] != color {
+		if Board[r][i][0] != ' ' && Board[r][i][0] != color {
 			break
 		}
 	}
@@ -133,7 +133,7 @@ func getValidRookMoves(color byte, r int, c int) [][2]int {
 	return moves
 }
 
-func getValidBishopMoves(color byte, r int, c int) [][2]int {
+func getBishopMoves(color byte, r int, c int) [][2]int {
 	moves := [][2]int{}
 
 	// top left
@@ -145,7 +145,7 @@ func getValidBishopMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r - i, c - i})
 
 		// capture
-		if Board[r-i][c-i][0] != color {
+		if Board[r-i][c-i][0] != ' ' && Board[r-i][c-i][0] != color {
 			break
 		}
 	}
@@ -159,7 +159,7 @@ func getValidBishopMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r - i, c + i})
 
 		// capture
-		if Board[r-i][c+i][0] != color {
+		if Board[r-i][c+i][0] != ' ' && Board[r-i][c+i][0] != color {
 			break
 		}
 	}
@@ -173,7 +173,7 @@ func getValidBishopMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r + i, c - i})
 
 		// capture
-		if Board[r+i][c-i][0] != color {
+		if Board[r+i][c-i][0] != ' ' && Board[r+i][c-i][0] != color {
 			break
 		}
 	}
@@ -187,7 +187,7 @@ func getValidBishopMoves(color byte, r int, c int) [][2]int {
 		moves = append(moves, [2]int{r + i, c + i})
 
 		// capture
-		if Board[r+i][c+i][0] != color {
+		if Board[r+i][c+i][0] != ' ' && Board[r+i][c+i][0] != color {
 			break
 		}
 	}
@@ -195,11 +195,11 @@ func getValidBishopMoves(color byte, r int, c int) [][2]int {
 	return moves
 }
 
-func getValidQueenMoves(color byte, r int, c int) [][2]int {
-	return append(getValidRookMoves(color, r, c), getValidBishopMoves(color, r, c)...)
+func getQueenMoves(color byte, r int, c int) [][2]int {
+	return append(getRookMoves(color, r, c), getBishopMoves(color, r, c)...)
 }
 
-func getValidKingMoves(color byte, r int, c int) [][2]int {
+func getKingMoves(color byte, r int, c int) [][2]int {
 	kingMoves := [][2]int{
 		{-1, -1},
 		{-1, 0},

@@ -1,17 +1,31 @@
 package board
 
+func GetAllValidMoves(color byte) ([][2][2]int, int) {
+	valid := [][2][2]int{}
+	n := 0
+
+	for r, row := range Board {
+		for c, piece := range row {
+			if piece[0] == color {
+				for _, move := range getValidMoves(r, c) {
+					if IsValidMove(r, c, move[0], move[1]) {
+						valid = append(valid, [2][2]int{{r, c}, move})
+						n++
+					}
+				}
+			}
+		}
+	}
+
+	return valid, n
+}
+
 func GetPossiblePieces(color byte, piece byte, rf int, cf int) [][2]int {
 	possiblePieces := [][2]int{}
 	for r, x := range Board {
 		for c, y := range x {
 			if y[0] == color && y[1] == piece && IsValidMove(r, c, rf, cf) {
-				MakeMove(r, c, rf, cf, true)
-
-				if !inCheck(color) {
-					possiblePieces = append(possiblePieces, [2]int{r, c})
-				}
-
-				MakeMove(rf, cf, r, c, true)
+				possiblePieces = append(possiblePieces, [2]int{r, c})
 			}
 		}
 	}
@@ -30,7 +44,18 @@ func ContainsPosition(positions [][2]int, position [2]int) bool {
 }
 
 func IsValidMove(r1 int, c1 int, r2 int, c2 int) bool {
-	return ContainsPosition(getValidMoves(r1, c1), [2]int{r2, c2})
+	return ContainsPosition(getValidMoves(r1, c1), [2]int{r2, c2}) && moveOutOfCheck(r1, c1, r2, c2)
+}
+
+func ValidateMoves(r int, c int, moves [][2]int) [][2]int {
+	valid := [][2]int{}
+	for _, move := range moves {
+		if IsValidMove(r, c, move[0], move[1]) {
+			valid = append(valid, move)
+		}
+	}
+
+	return valid
 }
 
 func getValidMoves(r int, c int) [][2]int {
@@ -38,23 +63,54 @@ func getValidMoves(r int, c int) [][2]int {
 
 	switch piece[1] {
 	case 'P':
-		return getValidPawnMoves(piece[0], r, c)
+		return getPawnMoves(piece[0], r, c)
 	case 'N':
-		return getValidKnightMoves(piece[0], r, c)
+		return getKnightMoves(piece[0], r, c)
 	case 'B':
-		return getValidBishopMoves(piece[0], r, c)
+		return getBishopMoves(piece[0], r, c)
 	case 'R':
-		return getValidRookMoves(piece[0], r, c)
+		return getRookMoves(piece[0], r, c)
 	case 'Q':
-		return getValidQueenMoves(piece[0], r, c)
+		return getQueenMoves(piece[0], r, c)
 	case 'K':
-		return getValidKingMoves(piece[0], r, c)
+		return getKingMoves(piece[0], r, c)
 	}
 
 	return [][2]int{}
 }
 
-func inCheck(color byte) bool {
+func moveOutOfCheck(r1 int, c1 int, r2 int, c2 int) bool {
+	color := Board[r1][c1][0]
+	temp := Board[r2][c2]
+
+	Board[r2][c2] = Board[r1][c1]
+	Board[r1][c1] = " "
+
+	if Board[r2][c2][1] == 'K' {
+		if Board[r2][c2][0] == 'w' {
+			WhiteKing = [2]int{r2, c2}
+		} else {
+			BlackKing = [2]int{r2, c2}
+		}
+	}
+
+	outOfCheck := !InCheck(color)
+
+	if Board[r2][c2][1] == 'K' {
+		if Board[r2][c2][0] == 'w' {
+			WhiteKing = [2]int{r1, c1}
+		} else {
+			BlackKing = [2]int{r1, c1}
+		}
+	}
+
+	Board[r1][c1] = Board[r2][c2]
+	Board[r2][c2] = temp
+
+	return outOfCheck
+}
+
+func InCheck(color byte) bool {
 	enemy := "b"
 	if color == 'b' {
 		enemy = "w"
@@ -68,28 +124,28 @@ func inCheck(color byte) bool {
 	// instead of going through every opponent piece to see if it can attack the king,
 	// we can check enemy pieces from the king's position to save time
 
-	possiblePawnAttacks := getValidPawnMoves(color, king[0], king[1])
+	possiblePawnAttacks := getPawnMoves(color, king[0], king[1])
 	for _, pos := range possiblePawnAttacks {
 		if Board[pos[0]][pos[1]] == enemy+"P" {
 			return true
 		}
 	}
 
-	possibleKnightAttacks := getValidKnightMoves(color, king[0], king[1])
+	possibleKnightAttacks := getKnightMoves(color, king[0], king[1])
 	for _, pos := range possibleKnightAttacks {
 		if Board[pos[0]][pos[1]] == enemy+"N" {
 			return true
 		}
 	}
 
-	possibleBishopAttacks := getValidBishopMoves(color, king[0], king[1])
+	possibleBishopAttacks := getBishopMoves(color, king[0], king[1])
 	for _, pos := range possibleBishopAttacks {
 		if Board[pos[0]][pos[1]] == enemy+"B" || Board[pos[0]][pos[1]] == enemy+"Q" {
 			return true
 		}
 	}
 
-	possibleRookAttacks := getValidRookMoves(color, king[0], king[1])
+	possibleRookAttacks := getRookMoves(color, king[0], king[1])
 	for _, pos := range possibleRookAttacks {
 		if Board[pos[0]][pos[1]] == enemy+"R" || Board[pos[0]][pos[1]] == enemy+"Q" {
 			return true
@@ -114,7 +170,7 @@ func isValidSquare(color byte, r int, c int) bool {
 }
 
 func ValidKingSideCastle(color byte) bool {
-	if inCheck(color) {
+	if InCheck(color) {
 		return false
 	}
 
@@ -132,28 +188,21 @@ func ValidKingSideCastle(color byte) bool {
 
 	// checking if squares are in check
 
-	// move king right one
-	MakeMove(row, 4, row, 5, true)
-	if inCheck(color) {
-		MakeMove(row, 5, row, 4, true)
+	// check right one
+	if !moveOutOfCheck(row, 4, row, 5) {
 		return false
 	}
 
-	// move king right one
-	MakeMove(row, 5, row, 6, true)
-	if inCheck(color) {
-		MakeMove(row, 6, row, 4, true)
+	// check right two
+	if !moveOutOfCheck(row, 4, row, 6) {
 		return false
 	}
-
-	// move king back
-	MakeMove(row, 6, row, 4, true)
 
 	return true
 }
 
 func ValidQueenSideCastle(color byte) bool {
-	if inCheck(color) {
+	if InCheck(color) {
 		return false
 	}
 
@@ -171,22 +220,15 @@ func ValidQueenSideCastle(color byte) bool {
 
 	// checking if squares are in check
 
-	// move king left one
-	MakeMove(row, 4, row, 3, true)
-	if inCheck(color) {
-		MakeMove(row, 3, row, 4, true)
+	// check left one
+	if !moveOutOfCheck(row, 4, row, 3) {
 		return false
 	}
 
-	// move king left one
-	MakeMove(row, 3, row, 2, true)
-	if inCheck(color) {
-		MakeMove(row, 2, row, 4, true)
+	// check left two
+	if !moveOutOfCheck(row, 4, row, 2) {
 		return false
 	}
-
-	// move king back
-	MakeMove(row, 2, row, 4, true)
 
 	return true
 }

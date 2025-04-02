@@ -65,7 +65,7 @@ func InputMove(color byte) {
 		possiblePieces := board.GetPossiblePieces(color, piece, finalPos[0], finalPos[1])
 
 		if len(possiblePieces) == 0 {
-			fmt.Println("You own no such piece to make this move.")
+			fmt.Println("You cannot make this move.")
 			continue
 		}
 
@@ -79,7 +79,7 @@ func InputMove(color byte) {
 				move = Input()
 			}
 			numeric := alphaToNumeric(move)
-			board.MakeMove(numeric[0], numeric[1], finalPos[0], finalPos[1], false)
+			board.MakeMove(numeric[0], numeric[1], finalPos[0], finalPos[1])
 
 			// handle promotion
 			if promotion {
@@ -99,7 +99,7 @@ func InputMove(color byte) {
 		}
 
 		// there's only one possible piece that can make the move
-		board.MakeMove(possiblePieces[0][0], possiblePieces[0][1], finalPos[0], finalPos[1], false)
+		board.MakeMove(possiblePieces[0][0], possiblePieces[0][1], finalPos[0], finalPos[1])
 
 		// handle promotion
 		if promotion {
