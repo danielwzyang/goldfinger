@@ -4,11 +4,6 @@ import (
 	"fmt"
 )
 
-func Clear() {
-	fmt.Print("\033[H\033[J")
-	header()
-}
-
 func Input() string {
 	fmt.Printf("> ")
 
@@ -22,7 +17,8 @@ func Input() string {
 	return input
 }
 
-func header() {
+func Header() {
+	fmt.Println()
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Pawn Star | danielyang.cc ©")
 	fmt.Println("──────────────────────────────────────────────────────")
@@ -30,7 +26,7 @@ func header() {
 }
 
 func StartOpts(player *byte, engineType *byte) {
-	Clear()
+	Header()
 
 	fmt.Println("What color are you playing? (b | w)")
 	fmt.Println("The opposing team will be played by the engine/bot.")

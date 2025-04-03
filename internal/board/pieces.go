@@ -4,44 +4,68 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 	moves := [][2]int{}
 
 	if color == 'w' {
-		// move forward
+		// move forward one
 		if Board[r-1][c] == " " {
 			moves = append(moves, [2]int{r - 1, c})
 		}
 
-		// move forward two
-		if r == 6 && Board[5][c] == " " && Board[4][c] == " " {
+		// move forward two from the starting row (row 6 for white)
+		if r == 6 && Board[r-1][c] == " " && Board[r-2][c] == " " {
 			moves = append(moves, [2]int{r - 2, c})
 		}
 
 		// capture left
-		if c != 0 && Board[r-1][c-1][0] == 'b' {
-			moves = append(moves, [2]int{r - 1, c - 1})
+		if c != 0 {
+			// regular capture
+			if Board[r-1][c-1] != " " && Board[r-1][c-1][0] == 'b' {
+				moves = append(moves, [2]int{r - 1, c - 1})
+				// en passant capture
+			} else if enPassant[0] == r-1 && enPassant[1] == c-1 {
+				moves = append(moves, [2]int{r - 1, c - 1})
+			}
 		}
 
 		// capture right
-		if c != 7 && Board[r-1][c+1][0] == 'b' {
-			moves = append(moves, [2]int{r - 1, c + 1})
+		if c != 7 {
+			// regular capture
+			if Board[r-1][c+1] != " " && Board[r-1][c+1][0] == 'b' {
+				moves = append(moves, [2]int{r - 1, c + 1})
+				// en passant capture
+			} else if enPassant[0] == r-1 && enPassant[1] == c+1 {
+				moves = append(moves, [2]int{r - 1, c + 1})
+			}
 		}
 	} else {
-		// move forward
+		// move forward one
 		if Board[r+1][c] == " " {
 			moves = append(moves, [2]int{r + 1, c})
 		}
 
-		// move forward two
-		if r == 1 && Board[2][c] == " " && Board[3][c] == " " {
+		// move forward two from the starting row (row 1 for black)
+		if r == 1 && Board[r+1][c] == " " && Board[r+2][c] == " " {
 			moves = append(moves, [2]int{r + 2, c})
 		}
 
 		// capture left
-		if c != 0 && Board[r+1][c-1][0] == 'w' {
-			moves = append(moves, [2]int{r + 1, c - 1})
+		if c != 0 {
+			// regular capture
+			if Board[r+1][c-1] != " " && Board[r+1][c-1][0] == 'w' {
+				moves = append(moves, [2]int{r + 1, c - 1})
+				// en passant capture
+			} else if enPassant[0] == r+1 && enPassant[1] == c-1 {
+				moves = append(moves, [2]int{r + 1, c - 1})
+			}
 		}
 
 		// capture right
-		if c != 7 && Board[r+1][c+1][0] == 'w' {
-			moves = append(moves, [2]int{r + 1, c + 1})
+		if c != 7 {
+			// regular capture
+			if Board[r+1][c+1] != " " && Board[r+1][c+1][0] == 'w' {
+				moves = append(moves, [2]int{r + 1, c + 1})
+				// en passant capture
+			} else if enPassant[0] == r+1 && enPassant[1] == c+1 {
+				moves = append(moves, [2]int{r + 1, c + 1})
+			}
 		}
 	}
 

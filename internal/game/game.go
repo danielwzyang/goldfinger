@@ -13,16 +13,16 @@ var (
 )
 
 func Start() {
-	board.Init()
+	board.Init(board.DefaultBoard)
 
 	StartOpts(&playerColor, &engineType)
 
-	var enemyColor byte = 'b'
+	var engineColor byte = 'b'
 	if playerColor == 'b' {
-		enemyColor = 'w'
+		engineColor = 'w'
 	}
 
-	engine.Init(engineType, enemyColor)
+	engine.Init(engineType, engineColor)
 
 	var engineLastMove string
 	var engineTime string
@@ -37,15 +37,33 @@ func Start() {
 	for {
 		tick++
 
-		Clear()
+		Header()
 
 		board.Print()
 
 		stop, endingText := Stop()
 		if stop {
 			fmt.Println(endingText)
+			fmt.Println("Type q to exit.")
+			input := Input()
+			for input != "q" {
+				input = Input()
+			}
 			return
 		}
+
+		fmt.Printf("Player evaluation score: %d\n", engine.Evaluate(playerColor))
+		fmt.Printf("Engine evaluation score: %d\n", engine.Evaluate(engineColor))
+
+		if board.InCheck('b') {
+			fmt.Println("Black is in check.")
+		}
+
+		if board.InCheck('w') {
+			fmt.Println("White is in check.")
+		}
+
+		fmt.Println()
 
 		if tick%2 != playerTick {
 			engineLastMove, engineTime = engine.MakeMove()
@@ -55,14 +73,6 @@ func Start() {
 		if tick != 1 {
 			fmt.Println("The engine played " + engineLastMove + ".")
 			fmt.Println("It thought for " + engineTime + ".")
-		}
-
-		if board.InCheck('b') {
-			fmt.Println("Black is in check.")
-		}
-
-		if board.InCheck('w') {
-			fmt.Println("White is in check.")
 		}
 
 		fmt.Println()
