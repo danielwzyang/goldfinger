@@ -10,11 +10,13 @@ import (
 var (
 	type_ byte
 	color byte
+	depth int
 )
 
-func Init(t byte, c byte) {
+func Init(t byte, c byte, d int) {
 	type_ = t
 	color = c
+	depth = d
 }
 
 func MakeMove() (string, string) {
@@ -24,7 +26,7 @@ func MakeMove() (string, string) {
 	case 'r':
 		return makeRandomMove(), timeSince(start)
 	case 'n':
-		return negamax(), timeSince(start)
+		return alphaBeta(), timeSince(start)
 	}
 
 	return "", ""

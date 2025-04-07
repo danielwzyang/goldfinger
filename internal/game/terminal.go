@@ -20,7 +20,7 @@ func Input() string {
 func Header() {
 	fmt.Println()
 	fmt.Println("──────────────────────────────────────────────────────")
-	fmt.Println("Pawn Star | danielyang.cc ©")
+	fmt.Println("Chess Engine | danielyang.cc ©")
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println()
 }

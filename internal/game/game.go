@@ -22,7 +22,7 @@ func Start() {
 		engineColor = 'w'
 	}
 
-	engine.Init(engineType, engineColor)
+	engine.Init(engineType, engineColor, 3)
 
 	var engineLastMove string
 	var engineTime string
@@ -52,8 +52,7 @@ func Start() {
 			return
 		}
 
-		fmt.Printf("Player evaluation score: %d\n", engine.Evaluate(playerColor))
-		fmt.Printf("Engine evaluation score: %d\n", engine.Evaluate(engineColor))
+		fmt.Printf("Eval: %.2f\n", engine.Evaluate('w'))
 
 		if board.InCheck('b') {
 			fmt.Println("Black is in check.")
@@ -82,27 +81,17 @@ func Start() {
 }
 
 func Stop() (bool, string) {
-	if Draw('b') || Draw('w') {
+	if board.Draw('b') || board.Draw('w') {
 		return true, "The game has ended in a draw!"
 	}
 
-	if Checkmate('b') {
+	if board.Checkmate('b') {
 		return true, "White has won by checkmate!"
 	}
 
-	if Checkmate('w') {
+	if board.Checkmate('w') {
 		return true, "Black has won by checkmate!"
 	}
 
 	return false, ""
-}
-
-func Draw(color byte) bool {
-	_, n := board.GetAllValidMoves(color)
-	return !board.InCheck(color) && n == 0 && !board.ValidKingSideCastle(color) && !board.ValidQueenSideCastle(color)
-}
-
-func Checkmate(color byte) bool {
-	_, n := board.GetAllValidMoves(color)
-	return board.InCheck(color) && n == 0 && !board.ValidKingSideCastle(color) && !board.ValidQueenSideCastle(color)
 }

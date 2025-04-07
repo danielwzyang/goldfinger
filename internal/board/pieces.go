@@ -5,7 +5,7 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 
 	if color == 'w' {
 		// move forward one
-		if Board[r-1][c] == " " {
+		if r != 0 && Board[r-1][c] == " " {
 			moves = append(moves, [2]int{r - 1, c})
 		}
 
@@ -15,29 +15,29 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 		}
 
 		// capture left
-		if c != 0 {
+		if r != 0 && c != 0 {
 			// regular capture
 			if Board[r-1][c-1] != " " && Board[r-1][c-1][0] == 'b' {
 				moves = append(moves, [2]int{r - 1, c - 1})
 				// en passant capture
-			} else if enPassant[0] == r-1 && enPassant[1] == c-1 {
+			} else if EnPassant[0] == r-1 && EnPassant[1] == c-1 {
 				moves = append(moves, [2]int{r - 1, c - 1})
 			}
 		}
 
 		// capture right
-		if c != 7 {
+		if r != 0 && c != 7 {
 			// regular capture
 			if Board[r-1][c+1] != " " && Board[r-1][c+1][0] == 'b' {
 				moves = append(moves, [2]int{r - 1, c + 1})
 				// en passant capture
-			} else if enPassant[0] == r-1 && enPassant[1] == c+1 {
+			} else if EnPassant[0] == r-1 && EnPassant[1] == c+1 {
 				moves = append(moves, [2]int{r - 1, c + 1})
 			}
 		}
-	} else {
+	} else if color == 'b' {
 		// move forward one
-		if Board[r+1][c] == " " {
+		if r != 7 && Board[r+1][c] == " " {
 			moves = append(moves, [2]int{r + 1, c})
 		}
 
@@ -47,23 +47,23 @@ func getPawnMoves(color byte, r int, c int) [][2]int {
 		}
 
 		// capture left
-		if c != 0 {
+		if r != 7 && c != 0 {
 			// regular capture
 			if Board[r+1][c-1] != " " && Board[r+1][c-1][0] == 'w' {
 				moves = append(moves, [2]int{r + 1, c - 1})
 				// en passant capture
-			} else if enPassant[0] == r+1 && enPassant[1] == c-1 {
+			} else if EnPassant[0] == r+1 && EnPassant[1] == c-1 {
 				moves = append(moves, [2]int{r + 1, c - 1})
 			}
 		}
 
 		// capture right
-		if c != 7 {
+		if r != 7 && c != 7 {
 			// regular capture
 			if Board[r+1][c+1] != " " && Board[r+1][c+1][0] == 'w' {
 				moves = append(moves, [2]int{r + 1, c + 1})
 				// en passant capture
-			} else if enPassant[0] == r+1 && enPassant[1] == c+1 {
+			} else if EnPassant[0] == r+1 && EnPassant[1] == c+1 {
 				moves = append(moves, [2]int{r + 1, c + 1})
 			}
 		}

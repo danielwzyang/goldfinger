@@ -88,9 +88,9 @@ func moveOutOfCheck(r1 int, c1 int, r2 int, c2 int) bool {
 
 	if Board[r2][c2][1] == 'K' {
 		if Board[r2][c2][0] == 'w' {
-			whiteKing = [2]int{r2, c2}
+			WhiteKing = [2]int{r2, c2}
 		} else {
-			blackKing = [2]int{r2, c2}
+			BlackKing = [2]int{r2, c2}
 		}
 	}
 
@@ -98,9 +98,9 @@ func moveOutOfCheck(r1 int, c1 int, r2 int, c2 int) bool {
 
 	if Board[r2][c2][1] == 'K' {
 		if Board[r2][c2][0] == 'w' {
-			whiteKing = [2]int{r1, c1}
+			WhiteKing = [2]int{r1, c1}
 		} else {
-			blackKing = [2]int{r1, c1}
+			BlackKing = [2]int{r1, c1}
 		}
 	}
 
@@ -116,9 +116,9 @@ func InCheck(color byte) bool {
 		enemy = "w"
 	}
 
-	king := whiteKing
+	king := WhiteKing
 	if color == 'b' {
-		king = blackKing
+		king = BlackKing
 	}
 
 	// instead of going through every opponent piece to see if it can attack the king,
@@ -174,11 +174,11 @@ func ValidKingSideCastle(color byte) bool {
 		return false
 	}
 
-	canCastle := wCastleKS
+	canCastle := WCastleKS
 	row := 7
 	if color == 'b' {
 		row = 0
-		canCastle = bCastleKS
+		canCastle = BCastleKS
 	}
 
 	// rook or king has moved or spaces aren't empty
@@ -206,11 +206,11 @@ func ValidQueenSideCastle(color byte) bool {
 		return false
 	}
 
-	canCastle := wCastleQS
+	canCastle := WCastleQS
 	row := 7
 	if color == 'b' {
 		row = 0
-		canCastle = bCastleQS
+		canCastle = BCastleQS
 	}
 
 	// rook or king has moved or spaces aren't empty

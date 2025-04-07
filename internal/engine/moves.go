@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"math"
 	"math/rand"
 
 	"danielyang.cc/chess/internal/board"
@@ -50,6 +51,12 @@ func makeRandomMove() string {
 	return numericToAlgebraic(move[1])
 }
 
-func negamax() string {
-	return ""
+func alphaBeta() string {
+	move, _ := alphaBetaImpl(math.MinInt, math.MaxInt, depth, color)
+	board.MakeMove(move[0][0], move[0][1], move[1][0], move[1][1])
+	// pawn automatically promote to queen
+	if board.Board[move[1][0]][move[1][1]][1] == 'P' && (move[1][0] == 0 || move[1][0] == 7) {
+		board.Board[move[1][0]][move[1][1]] = string(board.Board[move[1][0]][move[1][1]][0]) + "Q"
+	}
+	return numericToAlgebraic(move[1])
 }
