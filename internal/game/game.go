@@ -22,7 +22,7 @@ func Start() {
 		engineColor = 'w'
 	}
 
-	engine.Init(engineType, engineColor, 3)
+	engine.Init(engineType, engineColor, 5)
 
 	var engineLastMove string
 	var engineTime string
@@ -93,5 +93,5 @@ func Stop() (bool, string) {
 		return true, "Black has won by checkmate!"
 	}
 
-	return false, ""
+	return false, " "
 }

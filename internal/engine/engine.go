@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"danielyang.cc/chess/internal/board"
+	"danielyang.cc/chess/internal/transposition"
 )
 
 var (
@@ -17,6 +18,7 @@ func Init(t byte, c byte, d int) {
 	type_ = t
 	color = c
 	depth = d
+	transposition.Init()
 }
 
 func MakeMove() (string, string) {

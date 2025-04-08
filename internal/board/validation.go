@@ -1,38 +1,5 @@
 package board
 
-func GetAllValidMoves(color byte) ([][2][2]int, int) {
-	valid := [][2][2]int{}
-	n := 0
-
-	for r, row := range Board {
-		for c, piece := range row {
-			if piece[0] == color {
-				for _, move := range getValidMoves(r, c) {
-					if IsValidMove(r, c, move[0], move[1]) {
-						valid = append(valid, [2][2]int{{r, c}, move})
-						n++
-					}
-				}
-			}
-		}
-	}
-
-	return valid, n
-}
-
-func GetPossiblePieces(color byte, piece byte, rf int, cf int) [][2]int {
-	possiblePieces := [][2]int{}
-	for r, x := range Board {
-		for c, y := range x {
-			if y[0] == color && y[1] == piece && IsValidMove(r, c, rf, cf) {
-				possiblePieces = append(possiblePieces, [2]int{r, c})
-			}
-		}
-	}
-
-	return possiblePieces
-}
-
 func ContainsPosition(positions [][2]int, position [2]int) bool {
 	for _, item := range positions {
 		if item[0] == position[0] && item[1] == position[1] {

@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
+	"os"
 
 	"danielyang.cc/chess/internal/board"
 )
@@ -53,6 +55,13 @@ func makeRandomMove() string {
 
 func alphaBeta() string {
 	move, _ := alphaBetaImpl(math.MinInt, math.MaxInt, depth, color)
+
+	// all moves lead to a loss so move is essentially empty
+	if board.Board[move[0][0]][move[0][1]][0] == ' ' {
+		fmt.Println("The engine resigns.")
+		os.Exit(0)
+	}
+
 	board.MakeMove(move[0][0], move[0][1], move[1][0], move[1][1])
 	// pawn automatically promote to queen
 	if board.Board[move[1][0]][move[1][1]][1] == 'P' && (move[1][0] == 0 || move[1][0] == 7) {

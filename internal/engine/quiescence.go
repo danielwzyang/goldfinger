@@ -27,12 +27,15 @@ func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 	captures := board.GetCaptureMoves(currentColor)
 
 	// save state
-	boardState := board.Board
 	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
 	castleStates := [4]bool{board.WCastleKS, board.WCastleQS, board.BCastleKS, board.BCastleQS}
 	enPassant := board.EnPassant
 
 	for _, capture := range captures {
+		// save piece that's been captured
+		movedPiece := board.Board[capture[0][0]][capture[0][1]]
+		tempPiece := board.Board[capture[1][0]][capture[1][1]]
+
 		board.MakeMove(capture[0][0], capture[0][1], capture[1][0], capture[1][1])
 
 		nextColor := byte('w')
@@ -49,7 +52,8 @@ func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 		score := -quiesce(-beta, -alpha, nextColor)
 
 		// reset states
-		board.Board = boardState
+		board.Board[capture[0][0]][capture[0][1]] = movedPiece
+		board.Board[capture[1][0]][capture[1][1]] = tempPiece
 		board.EnPassant = enPassant
 		board.WhiteKing = kingPositions[0]
 		board.BlackKing = kingPositions[1]
