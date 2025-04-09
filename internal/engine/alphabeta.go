@@ -56,9 +56,22 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 	foundMove := false
 
 	moves, _ := board.GetAllValidMoves(currentColor)
-	sort.Slice(moves, func(i int, j int) bool {
-		return board.IsCapture(moves[i]) && !board.IsCapture(moves[j])
-	})
+
+	if ok {
+		pv := entry.BestMove
+		for i, move := range moves {
+			if move == pv {
+				moves[0], moves[i] = moves[i], moves[0]
+				break
+			}
+		}
+	}
+
+	if len(moves) > 1 {
+		sort.SliceStable(moves[1:], func(i int, j int) bool {
+			return board.IsCapture(moves[i+1]) && !board.IsCapture(moves[j+1])
+		})
+	}
 
 	// save state
 	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
