@@ -91,6 +91,13 @@ func InCheck(color byte) bool {
 	// instead of going through every opponent piece to see if it can attack the king,
 	// we can check enemy pieces from the king's position to save time
 
+	possibleKingAttacks := getKingMoves(color, king[0], king[1])
+	for _, pos := range possibleKingAttacks {
+		if Board[pos[0]][pos[1]] == enemy+"K" {
+			return true
+		}
+	}
+
 	possiblePawnAttacks := getPawnMoves(color, king[0], king[1])
 	for _, pos := range possiblePawnAttacks {
 		if Board[pos[0]][pos[1]] == enemy+"P" {
