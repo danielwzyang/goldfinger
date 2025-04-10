@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"sort"
+
 	"danielyang.cc/chess/internal/board"
 )
 
@@ -25,6 +27,13 @@ func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 
 	// generate captures
 	captures := board.GetCaptureMoves(currentColor)
+
+	sort.Slice(captures, func(i, j int) bool {
+		// Example: prioritize higher value captures, for example: queen > rook > bishop > knight
+		pieceValueI := pieceWeights[board.Board[captures[i][1][0]][captures[i][1][1]][1]]
+		pieceValueJ := pieceWeights[board.Board[captures[j][1][0]][captures[j][1][1]][1]]
+		return pieceValueI > pieceValueJ
+	})
 
 	// save state
 	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
