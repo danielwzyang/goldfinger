@@ -9,10 +9,11 @@ const (
 )
 
 type Node struct {
-	BestMove  [2][2]int
-	Score     float64
-	DepthLeft int
-	Type      NodeType
+	BestMove    [2][2]int
+	Score       float64
+	DepthLeft   int
+	Type        NodeType
+	SortedMoves [][2][2]int
 }
 
 var (
@@ -23,8 +24,14 @@ func Init() {
 	initZobrist()
 }
 
-func AddEntry(nodeType NodeType, bestMove [2][2]int, score float64, depthLeft int, color byte) {
-	table[HashBoard(color)] = Node{Type: nodeType, BestMove: bestMove, Score: score, DepthLeft: depthLeft}
+func AddEntry(nodeType NodeType, bestMove [2][2]int, score float64, depthLeft int, color byte, sortedMoves [][2][2]int) {
+	table[HashBoard(color)] = Node{
+		Type:        nodeType,
+		BestMove:    bestMove,
+		Score:       score,
+		DepthLeft:   depthLeft,
+		SortedMoves: sortedMoves,
+	}
 }
 
 func GetEntry(color byte) (Node, bool) {

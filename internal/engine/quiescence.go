@@ -1,10 +1,11 @@
 package engine
 
 import (
-	"sort"
-
 	"danielyang.cc/chess/internal/board"
+	"danielyang.cc/chess/internal/transposition"
 )
+
+var sortedMovesCache = map[uint64][][2][2]int{}
 
 func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 	standPat := Evaluate(currentColor)
@@ -25,15 +26,15 @@ func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 		alpha = standPat
 	}
 
-	// generate captures
-	captures := board.GetCaptureMoves(currentColor)
+	// generate captures or get from cache
+	var captures [][2][2]int
 
-	sort.Slice(captures, func(i, j int) bool {
-		// Example: prioritize higher value captures, for example: queen > rook > bishop > knight
-		pieceValueI := pieceWeights[board.Board[captures[i][1][0]][captures[i][1][1]][1]]
-		pieceValueJ := pieceWeights[board.Board[captures[j][1][0]][captures[j][1][1]][1]]
-		return pieceValueI > pieceValueJ
-	})
+	cache, ok := sortedMovesCache[transposition.HashBoard(currentColor)]
+	if ok {
+		captures = cache
+	} else {
+		captures = board.GetCaptureMoves(currentColor)
+	}
 
 	// save state
 	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
