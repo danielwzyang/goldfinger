@@ -1,80 +1,57 @@
 package board
 
-import (
-	"fmt"
-)
+import "fmt"
 
 var (
-	Board        [8][8]string
-	DefaultBoard = [8][8]string{
-		{"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
-		{"bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"},
-		{" ", " ", " ", " ", " ", " ", " ", " "},
-		{" ", " ", " ", " ", " ", " ", " ", " "},
-		{" ", " ", " ", " ", " ", " ", " ", " "},
-		{" ", " ", " ", " ", " ", " ", " ", " "},
-		{"wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"},
-		{"wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"},
-	}
+	Board [8][8]Piece
 
-	BlackKing [2]int
-	WhiteKing [2]int
-	ascii     = map[string]string{
-		"wK": "♔",
-		"wQ": "♕",
-		"wR": "♖",
-		"wB": "♗",
-		"wN": "♘",
-		"wP": "♙",
-
-		"bK": "♚",
-		"bQ": "♛",
-		"bR": "♜",
-		"bB": "♝",
-		"bN": "♞",
-		"bP": "♟",
-
-		" ": " ",
-	}
+	BlackKing Position
+	WhiteKing Position
 
 	BCastleKS = false // black can castle kingside until rook or king moves
 	BCastleQS = false // black can castle queenside until rook or king moves
 	WCastleKS = false // white can castle kingside until rook or king moves
 	WCastleQS = false // white can castle queenside until rook or king moves
 
-	EnPassant = [2]int{-10, -10} // set to the position that a pawn can move to for en passant capturing
+	EnPassant = Position{-10, -10} // set to the position that a pawn can move to for en passant capturing
+
+	BoardHistory  = []BoardState{}
+	HistoryLength = 0
 )
 
-func Init(board [8][8]string) {
+func Init(board [8][8]Piece) {
 	Board = board
 
 	for r, row := range Board {
 		for c, piece := range row {
-			if piece == "wK" {
-				WhiteKing = [2]int{r, c}
-			}
-			if piece == "bK" {
-				BlackKing = [2]int{r, c}
+			if piece.Color == KING {
+				if piece.Color == WHITE {
+					WhiteKing = Position{r, c}
+				}
+				if piece.Color == BLACK {
+					BlackKing = Position{r, c}
+				}
 			}
 		}
 	}
 
 	// castling
 	// for white the king has to be at 7 4
-	if WhiteKing[0] == 7 && WhiteKing[1] == 4 {
+	if WhiteKing.Rank == 7 && WhiteKing.File == 4 {
 		// for kingside the white rook has to be at 7 7
-		WCastleKS = Board[7][7] == "wR"
+		WCastleKS = Board[7][7].Color == WHITE && Board[7][7].Type == ROOK
 
 		// for queenside the white rook has to be at 7 0
-		WCastleQS = Board[7][0] == "wR"
+		WCastleQS = Board[7][0].Color == WHITE && Board[7][0].Type == ROOK
 	}
 
 	// for black the king has to be at 0 4
-	if BlackKing[0] == 0 && BlackKing[1] == 4 {
+	if BlackKing.Rank == 0 && BlackKing.File == 4 {
 		// for kingside the black rook has to be at 0 7
-		BCastleKS = Board[0][7] == "bR"
+		BCastleKS = Board[0][7].Color == BLACK && Board[0][7].Type == ROOK
+
 		// for queenside the black rook has to be at 0 0
-		BCastleQS = Board[0][0] == "bR"
+		BCastleQS = Board[0][0].Color == BLACK && Board[0][0].Type == ROOK
 	}
 }
 
@@ -89,9 +66,9 @@ func Print() {
 		// numbers on side
 		fmt.Printf(" %d %s│%s", 8-i, gray, reset)
 
-		for _, char := range row {
+		for _, piece := range row {
 			// pieces
-			fmt.Printf("%s\ufe0e %s│%s", ascii[char], gray, reset)
+			fmt.Printf("%s\ufe0e %s│%s", ascii[piece.Key], gray, reset)
 		}
 		fmt.Println()
 
@@ -108,12 +85,12 @@ func Print() {
 	fmt.Println()
 }
 
-func Draw(color byte) bool {
+func Draw(color int) bool {
 	_, n := GetAllValidMoves(color)
 	return !InCheck(color) && n == 0 && !ValidKingSideCastle(color) && !ValidQueenSideCastle(color)
 }
 
-func Checkmate(color byte) bool {
+func Checkmate(color int) bool {
 	_, n := GetAllValidMoves(color)
 	return InCheck(color) && n == 0 && !ValidKingSideCastle(color) && !ValidQueenSideCastle(color)
 }

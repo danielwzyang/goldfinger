@@ -10,11 +10,11 @@ import (
 
 var (
 	type_ byte
-	color byte
+	color int
 	depth int
 )
 
-func Init(t byte, c byte, d int) {
+func Init(t byte, c int, d int) {
 	type_ = t
 	color = c
 	depth = d
@@ -38,17 +38,17 @@ func timeSince(start time.Time) string {
 	return fmt.Sprintf("%d ms", time.Since(start).Milliseconds())
 }
 
-func numericToAlgebraic(position [2]int) string {
+func numericToAlgebraic(position board.Position) string {
 	piece := ""
 
-	if board.Board[position[0]][position[1]][1] == 'P' {
+	if board.Board[position.Rank][position.File].Type == board.PAWN {
 		piece = ""
 	} else {
-		piece = string(board.Board[position[0]][position[1]][1])
+		piece = board.PIECE_LETTERS[board.Board[position.Rank][position.File].Type]
 	}
 
-	x := rune(position[1] + 97) // 'a' is 97
-	y := rune(56 - position[0]) // '8' is 56
+	letter := rune(position.File + 97) // 'a' is 97
+	number := rune(56 - position.Rank) // '8' is 56
 
-	return piece + string(x) + string(y)
+	return piece + string(letter) + string(number)
 }

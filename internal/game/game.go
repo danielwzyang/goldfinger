@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	playerColor byte
-	engineType  byte
+	currentColor = board.WHITE
+	playerColor  int
+	engineType   byte
 )
 
 func Start() {
@@ -17,9 +18,9 @@ func Start() {
 
 	StartOpts(&playerColor, &engineType)
 
-	var engineColor byte = 'b'
-	if playerColor == 'b' {
-		engineColor = 'w'
+	var engineColor int = board.BLACK
+	if playerColor == board.BLACK {
+		engineColor = board.WHITE
 	}
 
 	engine.Init(engineType, engineColor, 3)
@@ -27,16 +28,7 @@ func Start() {
 	var engineLastMove string
 	var engineTime string
 
-	tick := 0
-
-	playerTick := 1
-	if playerColor == 'b' {
-		playerTick = 0
-	}
-
 	for {
-		tick++
-
 		Header()
 
 		board.Print()
@@ -52,24 +44,25 @@ func Start() {
 			return
 		}
 
-		fmt.Printf("Eval: %.2f\n", engine.Evaluate('w'))
+		fmt.Printf("Eval: %.2f\n", engine.Evaluate(board.WHITE))
 
-		if board.InCheck('b') {
+		if board.InCheck(board.BLACK) {
 			fmt.Println("Black is in check.")
 		}
 
-		if board.InCheck('w') {
+		if board.InCheck(board.WHITE) {
 			fmt.Println("White is in check.")
 		}
 
 		fmt.Println()
 
-		if tick%2 != playerTick {
+		if engineColor == currentColor {
 			engineLastMove, engineTime = engine.MakeMove()
+			currentColor ^= 1
 			continue
 		}
 
-		if tick != 1 {
+		if engineLastMove != "" {
 			fmt.Println("The engine played " + engineLastMove + ".")
 			fmt.Println("It thought for " + engineTime + ".")
 		}
@@ -77,19 +70,20 @@ func Start() {
 		fmt.Println()
 		fmt.Println("Enter your move. Read /docs/input.md for help.")
 		InputMove()
+		currentColor ^= 1
 	}
 }
 
 func Stop() (bool, string) {
-	if board.Draw('b') || board.Draw('w') {
+	if board.Draw(currentColor) {
 		return true, "The game has ended in a draw!"
 	}
 
-	if board.Checkmate('b') {
+	if board.Checkmate(board.BLACK) {
 		return true, "White has won by checkmate!"
 	}
 
-	if board.Checkmate('w') {
+	if board.Checkmate(board.WHITE) {
 		return true, "Black has won by checkmate!"
 	}
 

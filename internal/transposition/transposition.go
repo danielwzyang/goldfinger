@@ -1,5 +1,7 @@
 package transposition
 
+import "danielyang.cc/chess/internal/board"
+
 type NodeType int
 
 const (
@@ -9,11 +11,11 @@ const (
 )
 
 type Node struct {
-	BestMove    [2][2]int
+	BestMove    board.Move
 	Score       float64
 	DepthLeft   int
 	Type        NodeType
-	SortedMoves [][2][2]int
+	SortedMoves []board.Move
 }
 
 var (
@@ -24,17 +26,17 @@ func Init() {
 	initZobrist()
 }
 
-func AddEntry(nodeType NodeType, bestMove [2][2]int, score float64, depthLeft int, color byte, sortedMoves [][2][2]int) {
+func AddEntry(nodeType NodeType, bestMove board.Move, score float64, depthLeft int, sortedMoves []board.Move, color int) {
 	table[HashBoard(color)] = Node{
-		Type:        nodeType,
-		BestMove:    bestMove,
-		Score:       score,
-		DepthLeft:   depthLeft,
-		SortedMoves: sortedMoves,
+		bestMove,
+		score,
+		depthLeft,
+		nodeType,
+		sortedMoves,
 	}
 }
 
-func GetEntry(color byte) (Node, bool) {
+func GetEntry(color int) (Node, bool) {
 	val, ok := table[HashBoard(color)]
 	return val, ok
 }

@@ -7,28 +7,28 @@ import (
 )
 
 var (
-	pieceWeights = map[byte]float64{
-		'P': 1.0,
-		'N': 3.0,
-		'B': 3.0,
-		'R': 5.0,
-		'Q': 9.0,
+	pieceWeights = map[int]float64{
+		board.PAWN:   1.0,
+		board.KNIGHT: 3.0,
+		board.BISHOP: 3.0,
+		board.ROOK:   5.0,
+		board.QUEEN:  9.0,
 	}
 	pawnStructureWeight = 0.5
 	mobilityWeight      = 0.1
 )
 
-func Evaluate(color byte) float64 {
+func Evaluate(color int) float64 {
 	multiplier := 1.0
-	if color == 'b' {
+	if color == board.BLACK {
 		multiplier = -1.0
 	}
 
-	if board.Checkmate('w') || board.Checkmate('b') {
+	if board.Checkmate(board.WHITE) || board.Checkmate(board.BLACK) {
 		return math.Inf(int(multiplier))
 	}
 
-	if board.Draw('w') || board.Draw('b') {
+	if board.Draw(board.WHITE) || board.Draw(board.BLACK) {
 		return 0
 	}
 
@@ -40,11 +40,11 @@ func material() float64 {
 
 	for _, row := range board.Board {
 		for _, piece := range row {
-			if piece != " " && piece[1] != 'K' {
-				if piece[0] == 'w' {
-					score += pieceWeights[piece[1]]
+			if piece.Type != board.KING {
+				if piece.Color == board.WHITE {
+					score += pieceWeights[piece.Type]
 				} else {
-					score -= pieceWeights[piece[1]]
+					score -= pieceWeights[piece.Type]
 				}
 			}
 		}
@@ -54,8 +54,8 @@ func material() float64 {
 }
 
 func mobility() float64 {
-	_, wn := board.GetAllValidMoves('w')
-	_, bn := board.GetAllValidMoves('b')
+	_, wn := board.GetAllValidMoves(board.WHITE)
+	_, bn := board.GetAllValidMoves(board.BLACK)
 
 	return float64(wn-bn) * mobilityWeight
 }
@@ -69,30 +69,30 @@ func pawnStructure() float64 {
 
 		for r := 0; r < 8; r++ {
 			piece := board.Board[r][c]
-			if piece == "wP" {
+			if piece.Color == board.WHITE && piece.Type == board.PAWN {
 				wCount++
 
 				// blocked pawn (piece in front)
-				if r > 0 && board.Board[r-1][c] != " " {
+				if r > 0 && board.Board[r-1][c].Type != board.EMPTY {
 					score++
 				}
 
 				// isolated pawn (no pawns to help)
-				if (c == 0 || board.Board[r][c-1] == " " || board.Board[r-1][c-1] == " ") &&
-					(c == 7 || board.Board[r][c+1] == " " || board.Board[r-1][c+1] == " ") {
+				if (c == 0 || board.Board[r][c-1].Type != board.EMPTY || board.Board[r-1][c-1].Type != board.EMPTY) &&
+					(c == 7 || board.Board[r][c+1].Type != board.EMPTY || board.Board[r-1][c+1].Type != board.EMPTY) {
 					score++
 				}
-			} else if piece == "bP" {
+			} else if piece.Color == board.BLACK && piece.Type == board.PAWN {
 				bCount++
 
 				// blocked pawn (piece in front)
-				if r < 7 && board.Board[r+1][c] != " " {
+				if r < 7 && board.Board[r+1][c].Type != board.EMPTY {
 					score--
 				}
 
 				// isolated pawn (no pawns to help)
-				if (c == 0 || board.Board[r][c-1] == " " || board.Board[r+1][c-1] == " ") &&
-					(c == 7 || board.Board[r][c+1] == " " || board.Board[r+1][c+1] == " ") {
+				if (c == 0 || board.Board[r][c-1].Type != board.EMPTY || board.Board[r+1][c-1].Type != board.EMPTY) &&
+					(c == 7 || board.Board[r][c+1].Type != board.EMPTY || board.Board[r+1][c+1].Type != board.EMPTY) {
 					score--
 				}
 			}

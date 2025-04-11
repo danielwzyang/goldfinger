@@ -48,24 +48,31 @@ func makeRandomMove() string {
 	}
 
 	move := moves[random]
-	board.MakeMove(move[0][0], move[0][1], move[1][0], move[1][1])
+	board.MakeMove(move)
 
-	return numericToAlgebraic(move[1])
+	return numericToAlgebraic(move.To)
 }
 
 func alphaBeta() string {
 	move, _ := alphaBetaImpl(math.MinInt, math.MaxInt, depth, color)
 
 	// all moves lead to a loss so move is essentially empty
-	if board.Board[move[0][0]][move[0][1]][0] == ' ' {
+	if board.Board[move.From.Rank][move.From.File].Type == board.EMPTY {
 		fmt.Println("The engine resigns.")
 		os.Exit(0)
 	}
 
-	board.MakeMove(move[0][0], move[0][1], move[1][0], move[1][1])
-	// pawn automatically promote to queen
-	if board.Board[move[1][0]][move[1][1]][1] == 'P' && (move[1][0] == 0 || move[1][0] == 7) {
-		board.Board[move[1][0]][move[1][1]] = string(board.Board[move[1][0]][move[1][1]][0]) + "Q"
+	board.MakeMove(move)
+
+	// pawn promotion
+	if board.Board[move.To.Rank][move.To.File].Type == board.PAWN && (move.To.Rank == 0 || move.To.Rank == 7) {
+		// automatically promote to queen
+		board.Board[move.To.Rank][move.To.File] = board.Piece{
+			Type:  board.QUEEN,
+			Color: color,
+			Key:   board.GetKey(board.QUEEN, color),
+		}
 	}
-	return numericToAlgebraic(move[1])
+
+	return numericToAlgebraic(move.To)
 }

@@ -7,12 +7,12 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-func alphaToNumeric(position string) [2]int {
+func alphaToNumeric(position string) board.Position {
 	// converts string to rune array
 	runes := []rune(position)
 
 	// ascii value of 'a' is 97, '8' is 56
-	return [2]int{56 - int(runes[1]), int(runes[0]) - 97}
+	return board.Position{Rank: 56 - int(runes[1]), File: int(runes[0]) - 97}
 }
 
 func InputMove() {
@@ -44,25 +44,26 @@ func InputMove() {
 			continue
 		}
 
-		var piece byte
-		var finalPos [2]int
+		var piece int
+		var to board.Position
 		promotion := false
 		// moving pawn
 		if len(move) == 2 {
-			piece = 'P'
-			finalPos = alphaToNumeric(move)
+			piece = board.PAWN
+
+			to = alphaToNumeric(move)
 
 			// promoting pawn
-			if (playerColor == 'w' && finalPos[0] == 0) || (playerColor == 'b' && finalPos[0] == 7) {
+			if (playerColor == board.WHITE && to.Rank == 0) || (playerColor == board.BLACK && to.Rank == 7) {
 				promotion = true
 			}
 		} else {
-			piece = move[0]
-			finalPos = alphaToNumeric(move[1:])
+			piece = board.PIECE_VALUES[move[0]]
+			to = alphaToNumeric(move[1:])
 		}
 
 		// getting pieces that could move to the described position
-		possiblePieces := board.GetPossiblePieces(playerColor, piece, finalPos[0], finalPos[1])
+		possiblePieces := board.GetPossiblePieces(to, playerColor, piece)
 
 		if len(possiblePieces) == 0 {
 			fmt.Println("You cannot make this move.")
@@ -78,8 +79,8 @@ func InputMove() {
 				fmt.Println("Please type a valid position.")
 				move = Input()
 			}
-			numeric := alphaToNumeric(move)
-			board.MakeMove(numeric[0], numeric[1], finalPos[0], finalPos[1])
+			from := alphaToNumeric(move)
+			board.MakeMove(board.Move{From: from, To: to})
 
 			// handle promotion
 			if promotion {
@@ -91,15 +92,21 @@ func InputMove() {
 					newPiece = Input()
 				}
 
+				piece = board.PIECE_VALUES[newPiece[0]]
+
 				// update piece
-				board.Board[finalPos[0]][finalPos[1]] = string(playerColor) + newPiece
+				board.Board[to.Rank][to.File] = board.Piece{
+					Type:  piece,
+					Color: playerColor,
+					Key:   board.GetKey(piece, playerColor),
+				}
 			}
 
 			return
 		}
 
 		// there's only one possible piece that can make the move
-		board.MakeMove(possiblePieces[0][0], possiblePieces[0][1], finalPos[0], finalPos[1])
+		board.MakeMove(board.Move{From: possiblePieces[0], To: to})
 
 		// handle promotion
 		if promotion {
@@ -111,8 +118,14 @@ func InputMove() {
 				newPiece = Input()
 			}
 
+			piece = board.PIECE_VALUES[newPiece[0]]
+
 			// update piece
-			board.Board[finalPos[0]][finalPos[1]] = string(playerColor) + newPiece
+			board.Board[to.Rank][to.File] = board.Piece{
+				Type:  piece,
+				Color: playerColor,
+				Key:   board.GetKey(piece, playerColor),
+			}
 		}
 
 		return

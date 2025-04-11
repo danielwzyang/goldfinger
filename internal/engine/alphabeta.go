@@ -8,13 +8,10 @@ import (
 	"danielyang.cc/chess/internal/transposition"
 )
 
-var killerMoves = map[int][2][2]int{}
+var killerMoves = map[int]board.Move{}
 
-func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte) ([2][2]int, float64) {
-	nextColor := byte('w')
-	if currentColor == 'w' {
-		nextColor = 'b'
-	}
+func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int) (board.Move, float64) {
+	nextColor := currentColor ^ 1
 
 	// reverse futility pruning
 	eval := -Evaluate(nextColor)
@@ -24,7 +21,7 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 		if eval-margin >= beta {
 			// prune this branch if the material balance + gain + margin doesn't improve alpha
 			// fail soft
-			return [2][2]int{}, eval
+			return board.Move{}, eval
 		}
 	}
 
@@ -37,13 +34,13 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 		nullEval *= -1
 
 		if nullEval >= beta {
-			return [2][2]int{}, nullEval
+			return board.Move{}, nullEval
 		}
 	}
 
 	// stabilize with quiescence
 	if depthLeft <= 0 {
-		return [2][2]int{}, quiesce(alpha, beta, currentColor)
+		return board.Move{}, quiesce(alpha, beta, currentColor)
 	}
 
 	// check transposition table
@@ -69,9 +66,9 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 	}
 
 	bestScore := math.Inf(-1)
-	var bestMove [2][2]int
+	var bestMove board.Move
 
-	var moves [][2][2]int
+	var moves []board.Move
 
 	// if transposition table has entry then sorted moves are in there otherwise sort moves
 	if ok {
@@ -95,9 +92,9 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 
 				// if capture add mvv-lva score
 				if board.IsCapture(move) {
-					attacker := board.Board[move[0][0]][move[0][1]]
-					victim := board.Board[move[1][0]][move[1][1]]
-					score += int(pieceWeights[victim[1]]*13 - pieceWeights[attacker[1]])
+					attacker := board.Board[move.From.Rank][move.From.File]
+					victim := board.Board[move.To.Rank][move.To.File]
+					score += int(pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type])
 				}
 
 				moveScores[i] = score
@@ -120,32 +117,25 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 		}
 	}
 
-	// save state
-	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
-	castleStates := [4]bool{board.WCastleKS, board.WCastleQS, board.BCastleKS, board.BCastleQS}
-	enPassant := board.EnPassant
 	originalAlpha := alpha
 
 	for _, move := range moves {
-		// make move while preserving things like castle state and en passant so they can be reset
-		// naive approach is store copies of states
-
-		// save piece
-		movedPiece := board.Board[move[0][0]][move[0][1]]
-		tempPiece := board.Board[move[1][0]][move[1][1]]
-
 		// make move
-		board.MakeMove(move[0][0], move[0][1], move[1][0], move[1][1])
+		board.MakeMove(move)
 
 		// pawn promotion
-		if board.Board[move[1][0]][move[1][1]][1] == 'P' && (move[1][0] == 0 || move[1][0] == 7) {
+		if board.Board[move.To.Rank][move.To.File].Type == board.PAWN && (move.To.Rank == 0 || move.To.Rank == 7) {
 			// automatically promote to queen
-			board.Board[move[1][0]][move[1][1]] = string(currentColor) + "Q"
+			board.Board[move.To.Rank][move.To.File] = board.Piece{
+				Type:  board.QUEEN,
+				Color: color,
+				Key:   board.GetKey(board.QUEEN, color),
+			}
 		}
 
 		// handle checkmate
 		if board.Checkmate(currentColor) {
-			return [2][2]int{}, math.Inf(1)
+			return board.Move{}, math.Inf(1)
 		}
 
 		_, score := alphaBetaImpl(-beta, -alpha, depthLeft-1, nextColor)
@@ -153,16 +143,7 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 		// one colors max is the other colors min
 		score *= -1
 
-		// reset states
-		board.Board[move[0][0]][move[0][1]] = movedPiece
-		board.Board[move[1][0]][move[1][1]] = tempPiece
-		board.EnPassant = enPassant
-		board.WhiteKing = kingPositions[0]
-		board.BlackKing = kingPositions[1]
-		board.WCastleKS = castleStates[0]
-		board.WCastleQS = castleStates[1]
-		board.BCastleKS = castleStates[2]
-		board.BCastleQS = castleStates[3]
+		board.UndoMove()
 
 		// updating max
 		if score > bestScore {
@@ -192,9 +173,9 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 	if bestScore == math.Inf(-1) {
 		// this is likely checkmate or stalemate
 		if board.InCheck(currentColor) {
-			return [2][2]int{}, math.Inf(-1)
+			return board.Move{}, math.Inf(-1)
 		} else {
-			return [2][2]int{}, 0
+			return board.Move{}, 0
 		}
 	}
 
@@ -210,7 +191,7 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor byte
 		nodeType = transposition.PVNode
 	}
 
-	transposition.AddEntry(nodeType, bestMove, bestScore, depthLeft, currentColor, moves)
+	transposition.AddEntry(nodeType, bestMove, bestScore, depthLeft, moves, currentColor)
 
 	return bestMove, bestScore
 }

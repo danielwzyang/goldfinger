@@ -5,10 +5,10 @@ import (
 	"danielyang.cc/chess/internal/transposition"
 )
 
-var sortedMovesCache = map[uint64][][2][2]int{}
+var sortedMovesCache = map[uint64][]board.Move{}
 
-func quiesce(alpha float64, beta float64, currentColor byte) float64 {
-	standPat := Evaluate(currentColor)
+func quiesce(alpha float64, beta float64, color int) float64 {
+	standPat := Evaluate(color)
 	bestScore := standPat
 
 	// fail hard
@@ -27,50 +27,31 @@ func quiesce(alpha float64, beta float64, currentColor byte) float64 {
 	}
 
 	// generate captures or get from cache
-	var captures [][2][2]int
+	var captures []board.Move
 
-	cache, ok := sortedMovesCache[transposition.HashBoard(currentColor)]
+	cache, ok := sortedMovesCache[transposition.HashBoard(color)]
 	if ok {
 		captures = cache
 	} else {
-		captures = board.GetCaptureMoves(currentColor)
+		captures = board.GetCaptureMoves(color)
 	}
 
-	// save state
-	kingPositions := [][2]int{board.WhiteKing, board.BlackKing}
-	castleStates := [4]bool{board.WCastleKS, board.WCastleQS, board.BCastleKS, board.BCastleQS}
-	enPassant := board.EnPassant
-
 	for _, capture := range captures {
-		// save piece that's been captured
-		movedPiece := board.Board[capture[0][0]][capture[0][1]]
-		tempPiece := board.Board[capture[1][0]][capture[1][1]]
-
-		board.MakeMove(capture[0][0], capture[0][1], capture[1][0], capture[1][1])
-
-		nextColor := byte('w')
-		if currentColor == 'w' {
-			nextColor = 'b'
-		}
+		board.MakeMove(capture)
 
 		// pawn promotion
-		if board.Board[capture[1][0]][capture[1][1]][1] == 'P' && (capture[1][0] == 0 || capture[1][0] == 7) {
+		if board.Board[capture.To.Rank][capture.To.File].Type == board.PAWN && (capture.To.Rank == 0 || capture.To.Rank == 7) {
 			// automatically promote to queen
-			board.Board[capture[1][0]][capture[1][1]] = string(currentColor) + "Q"
+			board.Board[capture.To.Rank][capture.To.File] = board.Piece{
+				Type:  board.QUEEN,
+				Color: color,
+				Key:   board.GetKey(board.QUEEN, color),
+			}
 		}
 
-		score := -quiesce(-beta, -alpha, nextColor)
+		score := -quiesce(-beta, -alpha, color^1)
 
-		// reset states
-		board.Board[capture[0][0]][capture[0][1]] = movedPiece
-		board.Board[capture[1][0]][capture[1][1]] = tempPiece
-		board.EnPassant = enPassant
-		board.WhiteKing = kingPositions[0]
-		board.BlackKing = kingPositions[1]
-		board.WCastleKS = castleStates[0]
-		board.WCastleQS = castleStates[1]
-		board.BCastleKS = castleStates[2]
-		board.BCastleQS = castleStates[3]
+		board.UndoMove()
 
 		if score >= beta {
 			return score

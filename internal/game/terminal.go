@@ -2,6 +2,8 @@ package game
 
 import (
 	"fmt"
+
+	"danielyang.cc/chess/internal/board"
 )
 
 func Input() string {
@@ -25,7 +27,7 @@ func Header() {
 	fmt.Println()
 }
 
-func StartOpts(player *byte, engineType *byte) {
+func StartOpts(player *int, engineType *byte) {
 	Header()
 
 	fmt.Println("What color are you playing? (b | w)")
@@ -35,7 +37,12 @@ func StartOpts(player *byte, engineType *byte) {
 		fmt.Println("Please enter b or w.")
 		color = Input()
 	}
-	*player = color[0]
+
+	if color[0] == 'w' {
+		*player = board.WHITE
+	} else {
+		*player = board.BLACK
+	}
 
 	fmt.Println()
 
