@@ -8,10 +8,10 @@ var (
 	BlackKing Position
 	WhiteKing Position
 
-	BCastleKS = false // black can castle kingside until rook or king moves
-	BCastleQS = false // black can castle queenside until rook or king moves
-	WCastleKS = false // white can castle kingside until rook or king moves
-	WCastleQS = false // white can castle queenside until rook or king moves
+	BCastleKS = true // black can castle kingside until rook or king moves
+	BCastleQS = true // black can castle queenside until rook or king moves
+	WCastleKS = true // white can castle kingside until rook or king moves
+	WCastleQS = true // white can castle queenside until rook or king moves
 
 	EnPassant = Position{-10, -10} // set to the position that a pawn can move to for en passant capturing
 
