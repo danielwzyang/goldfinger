@@ -34,6 +34,20 @@ func quiesce(alpha float64, beta float64, color int) float64 {
 		captures = cache
 	} else {
 		captures = board.GetCaptureMoves(color)
+
+		moveScores := make([]int, len(captures))
+
+		for i, move := range captures {
+			score := 0
+
+			attacker := board.Board[move.From.Rank][move.From.File]
+			victim := board.Board[move.To.Rank][move.To.File]
+			score += int(pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type])
+
+			moveScores[i] = score
+		}
+
+		insertionSort(captures, moveScores)
 	}
 
 	for _, capture := range captures {

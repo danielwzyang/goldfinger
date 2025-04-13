@@ -2,7 +2,6 @@ package engine
 
 import (
 	"math"
-	"sort"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/transposition"
@@ -95,14 +94,20 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 					attacker := board.Board[move.From.Rank][move.From.File]
 					victim := board.Board[move.To.Rank][move.To.File]
 					score += int(pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type])
+				} else {
+					// use psq for non capture
+					pieceType := board.Board[move.From.Rank][move.From.File].Type
+					index := move.To.Rank*8 + move.To.File
+					if currentColor == board.BLACK {
+						index = 63 - index
+					}
+					score += positionalPieceSquareTable[pieceType][index]
 				}
 
 				moveScores[i] = score
 			}
 
-			sort.SliceStable(moves, func(i, j int) bool {
-				return moveScores[i] > moveScores[j]
-			})
+			insertionSort(moves, moveScores)
 		}
 
 		// if there's a pv move move it to the front
@@ -194,4 +199,21 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 	transposition.AddEntry(nodeType, bestMove, bestScore, depthLeft, moves, currentColor)
 
 	return bestMove, bestScore
+}
+
+func insertionSort(moves []board.Move, moveScores []int) {
+	for i := 1; i < len(moves); i++ {
+		currentMove := moves[i]
+		currentScore := moveScores[i]
+		j := i - 1
+
+		for j >= 0 && moveScores[j] < currentScore {
+			moves[j+1] = moves[j]
+			moveScores[j+1] = moveScores[j]
+			j--
+		}
+
+		moves[j+1] = currentMove
+		moveScores[j+1] = currentScore
+	}
 }

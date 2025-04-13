@@ -19,17 +19,27 @@ var (
 )
 
 func Evaluate(color int) float64 {
+	if board.Draw(board.WHITE) || board.Draw(board.BLACK) {
+		return 0
+	}
+
+	if board.Checkmate(board.WHITE) {
+		if color == board.WHITE {
+			return math.MinInt
+		}
+		return math.MaxInt
+	}
+
+	if board.Checkmate(board.BLACK) {
+		if color == board.WHITE {
+			return math.MaxInt
+		}
+		return math.MinInt
+	}
+
 	multiplier := 1.0
 	if color == board.BLACK {
 		multiplier = -1.0
-	}
-
-	if board.Checkmate(board.WHITE) || board.Checkmate(board.BLACK) {
-		return math.Inf(int(multiplier))
-	}
-
-	if board.Draw(board.WHITE) || board.Draw(board.BLACK) {
-		return 0
 	}
 
 	return (material() + pawnStructure() + mobility()) * multiplier
