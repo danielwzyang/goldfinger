@@ -124,7 +124,9 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 
 	originalAlpha := alpha
 
-	for _, move := range moves {
+	for i, move := range moves {
+		isCapture := board.IsCapture(move)
+
 		// make move
 		board.MakeMove(move)
 
@@ -134,7 +136,7 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 			board.Board[move.To.Rank][move.To.File] = board.Piece{
 				Type:  board.QUEEN,
 				Color: color,
-				Key:   board.GetKey(board.QUEEN, color),
+				Key:   color*6 + board.QUEEN + 1,
 			}
 		}
 
@@ -143,7 +145,13 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 			return board.Move{}, math.Inf(1)
 		}
 
-		_, score := alphaBetaImpl(-beta, -alpha, depthLeft-1, nextColor)
+		newDepth := depthLeft - 1
+
+		if i >= 6 && !isCapture {
+			newDepth = depthLeft / 3
+		}
+
+		_, score := alphaBetaImpl(-beta, -alpha, newDepth, nextColor)
 
 		// one colors max is the other colors min
 		score *= -1

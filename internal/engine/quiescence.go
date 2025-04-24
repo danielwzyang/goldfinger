@@ -59,7 +59,7 @@ func quiesce(alpha float64, beta float64, color int) float64 {
 			board.Board[capture.To.Rank][capture.To.File] = board.Piece{
 				Type:  board.QUEEN,
 				Color: color,
-				Key:   board.GetKey(board.QUEEN, color),
+				Key:   color*6 + board.QUEEN + 1,
 			}
 		}
 

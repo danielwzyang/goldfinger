@@ -23,7 +23,7 @@ func Start() {
 		engineColor = board.WHITE
 	}
 
-	engine.Init(engineType, engineColor, 3)
+	engine.Init(engineType, engineColor, 6)
 
 	var engineLastMove string
 	var engineTime string

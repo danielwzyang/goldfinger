@@ -98,7 +98,7 @@ func InputMove() {
 				board.Board[to.Rank][to.File] = board.Piece{
 					Type:  piece,
 					Color: playerColor,
-					Key:   board.GetKey(piece, playerColor),
+					Key:   playerColor*6 + piece + 1,
 				}
 			}
 
@@ -124,7 +124,7 @@ func InputMove() {
 			board.Board[to.Rank][to.File] = board.Piece{
 				Type:  piece,
 				Color: playerColor,
-				Key:   board.GetKey(piece, playerColor),
+				Key:   playerColor*6 + piece + 1,
 			}
 		}
 

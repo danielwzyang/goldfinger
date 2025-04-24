@@ -70,7 +70,7 @@ func alphaBeta() string {
 		board.Board[move.To.Rank][move.To.File] = board.Piece{
 			Type:  board.QUEEN,
 			Color: color,
-			Key:   board.GetKey(board.QUEEN, color),
+			Key:   color*6 + board.QUEEN + 1,
 		}
 	}
 
