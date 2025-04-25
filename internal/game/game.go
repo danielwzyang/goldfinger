@@ -13,7 +13,7 @@ var (
 	engineType   byte
 )
 
-func Start() {
+func Start(searchDepth int) {
 	board.Init(board.DefaultBoard)
 
 	StartOpts(&playerColor, &engineType)
@@ -23,11 +23,14 @@ func Start() {
 		engineColor = board.WHITE
 	}
 
-	engine.Init(engineType, engineColor, 6)
+	engine.Init(engineType, engineColor, searchDepth)
 
-	var engineLastMove string
-	var engineTime string
-
+	var (
+		engineLastMove   string
+		engineTime       int
+		engineTotalTime  int
+		engineTotalMoves int
+	)
 	for {
 		Header()
 
@@ -44,7 +47,7 @@ func Start() {
 			return
 		}
 
-		fmt.Printf("Eval: %.2f\n", engine.Evaluate(board.WHITE))
+		fmt.Printf("Eval: %d\n", engine.Evaluate(board.WHITE))
 
 		if board.InCheck(board.BLACK) {
 			fmt.Println("Black is in check.")
@@ -58,13 +61,16 @@ func Start() {
 
 		if engineColor == currentColor {
 			engineLastMove, engineTime = engine.MakeMove()
+			engineTotalTime += engineTime
+			engineTotalMoves++
 			currentColor ^= 1
 			continue
 		}
 
 		if engineLastMove != "" {
 			fmt.Println("The engine played " + engineLastMove + ".")
-			fmt.Println("It thought for " + engineTime + ".")
+			fmt.Printf("It thought for %d ms.\n", engineTime)
+			fmt.Printf("Average thinking time: %d ms.\n", engineTotalTime/engineTotalMoves)
 		}
 
 		fmt.Println()

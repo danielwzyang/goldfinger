@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 
@@ -12,8 +11,8 @@ import (
 func makeRandomMove() string {
 	options := 0
 
-	kingsideCastle := board.ValidKingSideCastle(color)
-	queensideCastle := board.ValidQueenSideCastle(color)
+	kingsideCastle := board.ValidKingSideCastle(engineColor)
+	queensideCastle := board.ValidQueenSideCastle(engineColor)
 
 	if kingsideCastle {
 		options++
@@ -23,19 +22,19 @@ func makeRandomMove() string {
 		options++
 	}
 
-	moves, n := board.GetAllValidMoves(color)
+	moves, n := board.GetAllValidMoves(engineColor)
 
 	options += n
 
 	random := rand.Intn(options)
 
 	if random == 0 && kingsideCastle {
-		board.KingsideCastle(color)
+		board.KingsideCastle(engineColor)
 		return "0-0"
 	}
 
 	if random == 1 && queensideCastle {
-		board.QueensideCastle(color)
+		board.QueensideCastle(engineColor)
 		return "0-0-0"
 	}
 
@@ -54,7 +53,8 @@ func makeRandomMove() string {
 }
 
 func alphaBeta() string {
-	move, _ := alphaBetaImpl(math.MinInt, math.MaxInt, depth, color)
+	move, score := alphaBetaImpl(-board.LIMIT_SCORE, board.LIMIT_SCORE, startingSearchDepth, engineColor)
+	fmt.Println(score)
 
 	// all moves lead to a loss so move is essentially empty
 	if board.Board[move.From.Rank][move.From.File].Type == board.EMPTY {
@@ -69,8 +69,8 @@ func alphaBeta() string {
 		// automatically promote to queen
 		board.Board[move.To.Rank][move.To.File] = board.Piece{
 			Type:  board.QUEEN,
-			Color: color,
-			Key:   color*6 + board.QUEEN + 1,
+			Color: engineColor,
+			Key:   engineColor*6 + board.QUEEN + 1,
 		}
 	}
 

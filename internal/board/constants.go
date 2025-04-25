@@ -109,6 +109,9 @@ var (
 
 	WHITE = 0
 	BLACK = 1
+
+	MATE_SCORE  = 100000
+	LIMIT_SCORE = 1000000
 )
 
 func GetKey(piece int, color int) int {

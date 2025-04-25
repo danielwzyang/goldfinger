@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"time"
 
 	"danielyang.cc/chess/internal/board"
@@ -9,19 +8,20 @@ import (
 )
 
 var (
-	type_ byte
-	color int
-	depth int
+	type_               byte
+	engineColor         int
+	startingSearchDepth int
 )
 
 func Init(t byte, c int, d int) {
 	type_ = t
-	color = c
-	depth = d
+	engineColor = c
+	startingSearchDepth = d
 	transposition.Init()
+	InitEvalTables()
 }
 
-func MakeMove() (string, string) {
+func MakeMove() (string, int) {
 	start := time.Now()
 
 	switch type_ {
@@ -31,11 +31,11 @@ func MakeMove() (string, string) {
 		return alphaBeta(), timeSince(start)
 	}
 
-	return "", ""
+	return "", 0
 }
 
-func timeSince(start time.Time) string {
-	return fmt.Sprintf("%d ms", time.Since(start).Milliseconds())
+func timeSince(start time.Time) int {
+	return int(time.Since(start).Milliseconds())
 }
 
 func numericToAlgebraic(position board.Position) string {

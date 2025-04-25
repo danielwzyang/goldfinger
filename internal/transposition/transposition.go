@@ -12,7 +12,7 @@ const (
 
 type Node struct {
 	BestMove    board.Move
-	Score       float64
+	Score       int
 	DepthLeft   int
 	Type        NodeType
 	SortedMoves []board.Move
@@ -26,7 +26,7 @@ func Init() {
 	initZobrist()
 }
 
-func AddEntry(nodeType NodeType, bestMove board.Move, score float64, depthLeft int, sortedMoves []board.Move, color int) {
+func AddEntry(nodeType NodeType, bestMove board.Move, score int, depthLeft int, sortedMoves []board.Move, color int) {
 	table[HashBoard(color)] = Node{
 		bestMove,
 		score,

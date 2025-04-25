@@ -7,8 +7,8 @@ import (
 
 var sortedMovesCache = map[uint64][]board.Move{}
 
-func quiesce(alpha float64, beta float64, color int) float64 {
-	standPat := Evaluate(color)
+func quiesce(alpha int, beta int, currentColor int) int {
+	standPat := Evaluate(currentColor)
 	bestScore := standPat
 
 	// fail hard
@@ -16,24 +16,15 @@ func quiesce(alpha float64, beta float64, color int) float64 {
 		return standPat
 	}
 
-	// delta pruning; 200 centipawns
-	delta := 2.0
-	if standPat < alpha-delta {
-		return alpha
-	}
-
-	if alpha < standPat {
-		alpha = standPat
-	}
-
 	// generate captures or get from cache
 	var captures []board.Move
 
-	cache, ok := sortedMovesCache[transposition.HashBoard(color)]
+	hash := transposition.HashBoard(currentColor)
+	cache, ok := sortedMovesCache[hash]
 	if ok {
 		captures = cache
 	} else {
-		captures = board.GetCaptureMoves(color)
+		captures = board.GetCaptureMoves(currentColor)
 
 		moveScores := make([]int, len(captures))
 
@@ -42,12 +33,14 @@ func quiesce(alpha float64, beta float64, color int) float64 {
 
 			attacker := board.Board[move.From.Rank][move.From.File]
 			victim := board.Board[move.To.Rank][move.To.File]
-			score += int(pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type])
+			score += pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
 
 			moveScores[i] = score
 		}
 
 		insertionSort(captures, moveScores)
+
+		sortedMovesCache[hash] = captures
 	}
 
 	for _, capture := range captures {
@@ -58,12 +51,12 @@ func quiesce(alpha float64, beta float64, color int) float64 {
 			// automatically promote to queen
 			board.Board[capture.To.Rank][capture.To.File] = board.Piece{
 				Type:  board.QUEEN,
-				Color: color,
-				Key:   color*6 + board.QUEEN + 1,
+				Color: currentColor,
+				Key:   currentColor*6 + board.QUEEN + 1,
 			}
 		}
 
-		score := -quiesce(-beta, -alpha, color^1)
+		score := -quiesce(-beta, -alpha, currentColor^1)
 
 		board.UndoMove()
 

@@ -8,34 +8,10 @@ import (
 )
 
 var killerMoves = map[int]board.Move{}
+var historyHeuristic = [6][64]int{}
 
-func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int) (board.Move, float64) {
+func alphaBetaImpl(alpha int, beta int, depthLeft int, currentColor int) (board.Move, int) {
 	nextColor := currentColor ^ 1
-
-	// reverse futility pruning
-	eval := -Evaluate(nextColor)
-	if depthLeft <= 3 {
-		// margin based on depth
-		margin := 150.0 * float64(depthLeft)
-		if eval-margin >= beta {
-			// prune this branch if the material balance + gain + margin doesn't improve alpha
-			// fail soft
-			return board.Move{}, eval
-		}
-	}
-
-	// null move pruning
-	if depthLeft >= 2 {
-		// reduction factor
-		const R = 2
-
-		_, nullEval := alphaBetaImpl(-beta, -beta+1, depthLeft-1-R, nextColor)
-		nullEval *= -1
-
-		if nullEval >= beta {
-			return board.Move{}, nullEval
-		}
-	}
 
 	// stabilize with quiescence
 	if depthLeft <= 0 {
@@ -43,10 +19,10 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 	}
 
 	// check transposition table
-	entry, ok := transposition.GetEntry(currentColor)
+	entry, pv := transposition.GetEntry(currentColor)
 
-	// if entry exists and the depth of the entry is at least at our depth or deeper
-	if ok && entry.DepthLeft <= depthLeft {
+	// if entry exists and the entry isn't shallower than the current
+	if pv && entry.DepthLeft <= depthLeft {
 		switch entry.Type {
 		case transposition.PVNode:
 			// exact score
@@ -64,13 +40,26 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 		}
 	}
 
-	bestScore := math.Inf(-1)
+	// null move pruning
+	if !pv && startingSearchDepth > depthLeft && beta-alpha > 1 && !board.InCheck(currentColor) {
+		// reduction factor
+		const R = 2
+
+		_, nullEval := alphaBetaImpl(-beta, -beta+1, depthLeft-1-R, nextColor)
+		nullEval *= -1
+
+		if nullEval >= beta {
+			return board.Move{}, nullEval
+		}
+	}
+
+	bestScore := -board.LIMIT_SCORE
 	var bestMove board.Move
 
 	var moves []board.Move
 
 	// if transposition table has entry then sorted moves are in there otherwise sort moves
-	if ok {
+	if pv {
 		moves = entry.SortedMoves
 	} else {
 		var n int
@@ -93,15 +82,12 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 				if board.IsCapture(move) {
 					attacker := board.Board[move.From.Rank][move.From.File]
 					victim := board.Board[move.To.Rank][move.To.File]
-					score += int(pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type])
+					score += pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
 				} else {
-					// use psq for non capture
-					pieceType := board.Board[move.From.Rank][move.From.File].Type
+					// history heuristic for quiet moves
+					piece := board.Board[move.From.Rank][move.From.File].Type
 					index := move.To.Rank*8 + move.To.File
-					if currentColor == board.BLACK {
-						index = 63 - index
-					}
-					score += positionalPieceSquareTable[pieceType][index]
+					score += historyHeuristic[piece][index]
 				}
 
 				moveScores[i] = score
@@ -111,7 +97,7 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 		}
 
 		// if there's a pv move move it to the front
-		if ok {
+		if pv {
 			pv := entry.BestMove
 			for i, move := range moves {
 				if move == pv {
@@ -124,34 +110,34 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 
 	originalAlpha := alpha
 
-	for i, move := range moves {
-		isCapture := board.IsCapture(move)
-
+	// search
+	for moveCount, move := range moves {
+		capture := board.IsCapture(move)
 		// make move
 		board.MakeMove(move)
 
 		// pawn promotion
-		if board.Board[move.To.Rank][move.To.File].Type == board.PAWN && (move.To.Rank == 0 || move.To.Rank == 7) {
+		promotion := board.Board[move.To.Rank][move.To.File].Type == board.PAWN && (move.To.Rank == 0 || move.To.Rank == 7)
+		if promotion {
 			// automatically promote to queen
 			board.Board[move.To.Rank][move.To.File] = board.Piece{
 				Type:  board.QUEEN,
-				Color: color,
-				Key:   color*6 + board.QUEEN + 1,
+				Color: engineColor,
+				Key:   engineColor*6 + board.QUEEN + 1,
 			}
 		}
 
-		// handle checkmate
-		if board.Checkmate(currentColor) {
-			return board.Move{}, math.Inf(1)
+		// late move reduction
+		var reduction int
+		if depthLeft < 3 || moveCount <= 3 || board.InCheck(currentColor) {
+			reduction = 0
+		} else if promotion || capture {
+			reduction = int(0.20 + math.Log(float64(depthLeft))*math.Log(float64(moveCount))/3.35)
+		} else {
+			reduction = int(1.35 + math.Log(float64(depthLeft))*math.Log(float64(moveCount))/2.75)
 		}
 
-		newDepth := depthLeft - 1
-
-		if i >= 6 && !isCapture {
-			newDepth = depthLeft / 3
-		}
-
-		_, score := alphaBetaImpl(-beta, -alpha, newDepth, nextColor)
+		_, score := alphaBetaImpl(-beta, -alpha, depthLeft-reduction-1, nextColor)
 
 		// one colors max is the other colors min
 		score *= -1
@@ -171,7 +157,15 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 		// record killer move for current depth
 		// killer move means that it causes a cutoff meaning
 		// killer moves are strong moves because they reduces the number of possibilities
+		// use history heuristic if quiet killer
 		if alpha >= beta {
+			// record quiet killer in history
+			if !capture {
+				piece := board.Board[move.From.Rank][move.From.File].Type
+				index := move.To.Rank*8 + move.To.File
+				historyHeuristic[piece][index] += depthLeft * depthLeft
+			}
+
 			// this is a new found killer so we can add it and use it in our move ordering
 			if killerMoves[depthLeft] != move {
 				killerMoves[depthLeft] = move
@@ -182,11 +176,10 @@ func alphaBetaImpl(alpha float64, beta float64, depthLeft int, currentColor int)
 	}
 
 	// handle move not found
-
-	if bestScore == math.Inf(-1) {
+	if bestScore == -board.LIMIT_SCORE {
 		// this is likely checkmate or stalemate
 		if board.InCheck(currentColor) {
-			return board.Move{}, math.Inf(-1)
+			return board.Move{}, -board.MATE_SCORE + depthLeft
 		} else {
 			return board.Move{}, 0
 		}
