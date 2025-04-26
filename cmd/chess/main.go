@@ -6,5 +6,5 @@ import (
 
 func main() {
 	// start with engine search depth
-	game.Start(8)
+	game.Start(10)
 }

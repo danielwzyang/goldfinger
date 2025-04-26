@@ -29,13 +29,10 @@ func quiesce(alpha int, beta int, currentColor int) int {
 		moveScores := make([]int, len(captures))
 
 		for i, move := range captures {
-			score := 0
-
 			attacker := board.Board[move.From.Rank][move.From.File]
 			victim := board.Board[move.To.Rank][move.To.File]
-			score += pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
-
-			moveScores[i] = score
+			// basic static exchange eval
+			moveScores[i] = pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
 		}
 
 		insertionSort(captures, moveScores)
@@ -44,6 +41,14 @@ func quiesce(alpha int, beta int, currentColor int) int {
 	}
 
 	for _, capture := range captures {
+		// delta pruning skips captures that dont raise alpha
+		attacker := board.Board[capture.From.Rank][capture.From.File]
+		victim := board.Board[capture.To.Rank][capture.To.File]
+		see := pieceWeights[victim.Type] - pieceWeights[attacker.Type]
+		if standPat+see+200 <= alpha {
+			continue
+		}
+
 		board.MakeMove(capture)
 
 		// pawn promotion

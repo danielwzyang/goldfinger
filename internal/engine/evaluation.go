@@ -3,8 +3,8 @@ package engine
 import "danielyang.cc/chess/internal/board"
 
 var (
-	// simplified weights for fast eval like in mvv lva
-	pieceWeights = [6]int{1, 3, 3, 5, 9}
+	// simplified weights for fast eval like in mvv lva and delta pruning
+	pieceWeights = [6]int{100, 300, 300, 500, 900}
 
 	// midgame endgame weights
 	taperedPieceWeights = [2][6]int{

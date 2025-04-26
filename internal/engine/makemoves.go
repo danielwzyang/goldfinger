@@ -54,7 +54,7 @@ func makeRandomMove() string {
 
 func alphaBeta() string {
 	move, score := alphaBetaImpl(-board.LIMIT_SCORE, board.LIMIT_SCORE, startingSearchDepth, engineColor)
-	fmt.Println(score)
+	fmt.Printf("Predicted best score with search depth %d: %d", startingSearchDepth, score)
 
 	// all moves lead to a loss so move is essentially empty
 	if board.Board[move.From.Rank][move.From.File].Type == board.EMPTY {
