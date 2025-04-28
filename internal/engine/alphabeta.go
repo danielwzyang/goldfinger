@@ -10,7 +10,7 @@ import (
 var killerMoves = map[int]board.Move{}
 var historyHeuristic = [6][64]int{}
 
-func alphaBetaImpl(alpha int, beta int, depthLeft int, currentColor int) (board.Move, int) {
+func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move, int) {
 	nextColor := currentColor ^ 1
 
 	// stabilize with quiescence
@@ -21,8 +21,8 @@ func alphaBetaImpl(alpha int, beta int, depthLeft int, currentColor int) (board.
 	// check transposition table
 	entry, pv := transposition.GetEntry(currentColor)
 
-	// if entry exists and the entry isn't shallower than the current
-	if pv && entry.DepthLeft <= depthLeft {
+	// if entry exists and this current search will not search deeper than the entry
+	if pv && entry.DepthLeft >= depthLeft {
 		switch entry.Type {
 		case transposition.PVNode:
 			// exact score
@@ -41,11 +41,11 @@ func alphaBetaImpl(alpha int, beta int, depthLeft int, currentColor int) (board.
 	}
 
 	// null move pruning
-	if !pv && startingSearchDepth > depthLeft && beta-alpha > 1 && !board.InCheck(currentColor) {
+	if !pv && searchDepth > depthLeft && beta-alpha > 1 && !board.InCheck(currentColor) {
 		// reduction factor
 		const R = 2
 
-		_, nullEval := alphaBetaImpl(-beta, -beta+1, depthLeft-1-R, nextColor)
+		_, nullEval := alphaBeta(-beta, -beta+1, depthLeft-1-R, nextColor)
 		nullEval *= -1
 
 		if nullEval >= beta {
@@ -137,7 +137,7 @@ func alphaBetaImpl(alpha int, beta int, depthLeft int, currentColor int) (board.
 			reduction = int(1.35 + math.Log(float64(depthLeft))*math.Log(float64(moveCount))/2.75)
 		}
 
-		_, score := alphaBetaImpl(-beta, -alpha, depthLeft-reduction-1, nextColor)
+		_, score := alphaBeta(-beta, -alpha, depthLeft-reduction-1, nextColor)
 
 		// one colors max is the other colors min
 		score *= -1

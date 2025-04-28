@@ -52,9 +52,43 @@ func makeRandomMove() string {
 	return numericToAlgebraic(move.To)
 }
 
-func alphaBeta() string {
-	move, score := alphaBetaImpl(-board.LIMIT_SCORE, board.LIMIT_SCORE, startingSearchDepth, engineColor)
-	fmt.Printf("Predicted best score with search depth %d: %d", startingSearchDepth, score)
+func iterativeDeepening() string {
+	var move board.Move
+	var score int
+	var prevScore int
+
+	// iterative deepening with aspiration windows
+	for depth := 1; depth <= searchDepth; depth++ {
+		delta := 30
+		alpha := prevScore - delta
+		beta := prevScore + delta
+
+		for {
+			move, score = alphaBeta(alpha, beta, depth, engineColor)
+
+			// in both fail cases increase delta to widen the window
+
+			// fail low (position is worse than expected)
+			if score <= alpha {
+				alpha = score - delta
+				delta *= 2
+				continue
+			}
+
+			// fail high (position is better than expected)
+			if score >= beta {
+				beta = score + delta
+				delta *= 2
+				continue
+			}
+
+			break
+		}
+
+		prevScore = score
+	}
+
+	fmt.Printf("Predicted best score with search depth %d: %d", searchDepth, score)
 
 	// all moves lead to a loss so move is essentially empty
 	if board.Board[move.From.Rank][move.From.File].Type == board.EMPTY {

@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	type_               byte
-	engineColor         int
-	startingSearchDepth int
+	type_       byte
+	engineColor int
+	searchDepth int
 )
 
 func Init(t byte, c int, d int) {
 	type_ = t
 	engineColor = c
-	startingSearchDepth = d
+	searchDepth = d
 	transposition.Init()
 	InitEvalTables()
 }
@@ -28,7 +28,7 @@ func MakeMove() (string, int) {
 	case 'r':
 		return makeRandomMove(), timeSince(start)
 	case 'n':
-		return alphaBeta(), timeSince(start)
+		return iterativeDeepening(), timeSince(start)
 	}
 
 	return "", 0

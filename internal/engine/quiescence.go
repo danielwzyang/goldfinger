@@ -41,11 +41,11 @@ func quiesce(alpha int, beta int, currentColor int) int {
 	}
 
 	for _, capture := range captures {
-		// delta pruning skips captures that dont raise alpha
+		// delta pruning skips captures that dont raise alpha + prune if see < 0
 		attacker := board.Board[capture.From.Rank][capture.From.File]
 		victim := board.Board[capture.To.Rank][capture.To.File]
 		see := pieceWeights[victim.Type] - pieceWeights[attacker.Type]
-		if standPat+see+200 <= alpha {
+		if see < 0 || standPat+see+200 <= alpha {
 			continue
 		}
 
