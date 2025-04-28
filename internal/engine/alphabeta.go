@@ -41,7 +41,7 @@ func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move
 	}
 
 	// null move pruning
-	if !pv && searchDepth > depthLeft && beta-alpha > 1 && !board.InCheck(currentColor) {
+	if !pv && searchDepth > depthLeft && depthLeft >= 3 && beta-alpha > 1 && !board.InCheck(currentColor) {
 		// reduction factor
 		const R = 2
 
@@ -75,7 +75,6 @@ func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move
 				// killer heuristic
 				if killerMoves[depthLeft] == move {
 					score += 10000
-					break
 				}
 
 				// if capture add mvv-lva score
@@ -95,17 +94,6 @@ func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move
 
 			insertionSort(moves, moveScores)
 		}
-
-		// if there's a pv move move it to the front
-		if pv {
-			pv := entry.BestMove
-			for i, move := range moves {
-				if move == pv {
-					moves[0], moves[i] = moves[i], moves[0]
-					break
-				}
-			}
-		}
 	}
 
 	originalAlpha := alpha
@@ -122,8 +110,8 @@ func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move
 			// automatically promote to queen
 			board.Board[move.To.Rank][move.To.File] = board.Piece{
 				Type:  board.QUEEN,
-				Color: engineColor,
-				Key:   engineColor*6 + board.QUEEN + 1,
+				Color: currentColor,
+				Key:   currentColor*6 + board.QUEEN + 1,
 			}
 		}
 

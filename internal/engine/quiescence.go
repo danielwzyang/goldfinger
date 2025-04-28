@@ -2,10 +2,7 @@ package engine
 
 import (
 	"danielyang.cc/chess/internal/board"
-	"danielyang.cc/chess/internal/transposition"
 )
-
-var sortedMovesCache = map[uint64][]board.Move{}
 
 func quiesce(alpha int, beta int, currentColor int) int {
 	standPat := Evaluate(currentColor)
@@ -16,28 +13,19 @@ func quiesce(alpha int, beta int, currentColor int) int {
 		return standPat
 	}
 
-	// generate captures or get from cache
-	var captures []board.Move
+	captures := board.GetCaptureMoves(currentColor)
 
-	hash := transposition.HashBoard(currentColor)
-	cache, ok := sortedMovesCache[hash]
-	if ok {
-		captures = cache
-	} else {
-		captures = board.GetCaptureMoves(currentColor)
+	moveScores := make([]int, len(captures))
 
-		moveScores := make([]int, len(captures))
+	for i, move := range captures {
+		attacker := board.Board[move.From.Rank][move.From.File]
+		victim := board.Board[move.To.Rank][move.To.File]
+		// basic static exchange eval
+		moveScores[i] = pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
+	}
 
-		for i, move := range captures {
-			attacker := board.Board[move.From.Rank][move.From.File]
-			victim := board.Board[move.To.Rank][move.To.File]
-			// basic static exchange eval
-			moveScores[i] = pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
-		}
-
+	if len(captures) > 2 {
 		insertionSort(captures, moveScores)
-
-		sortedMovesCache[hash] = captures
 	}
 
 	for _, capture := range captures {
