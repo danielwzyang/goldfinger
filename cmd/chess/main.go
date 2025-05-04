@@ -1,10 +1,9 @@
 package main
 
 import (
-	"danielyang.cc/chess/internal/game"
+	"danielyang.cc/chess/internal/board"
 )
 
 func main() {
-	// start with engine search depth
-	game.Start(8)
+	board.Init(board.DefaultBoard)
 }

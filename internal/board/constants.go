@@ -1,119 +1,120 @@
 package board
 
-type BoardState struct {
-	LastMove Move
-	PieceA   Piece // piece that was moved
-	PieceB   Piece // piece that was "captured" / empty piece
-
-	WCastleKS bool
-	WCastleQS bool
-	BCastleKS bool
-	BCastleQS bool
-
-	EnPassant Position
-}
-
-type Position struct {
-	Rank int
-	File int
-}
-
-type Move struct {
-	From Position
-	To   Position
-}
-
-type Piece struct {
-	Type  int
-	Color int
-	Key   int
-}
-
-func EMPTY_PIECE() Piece {
-	return Piece{EMPTY, EMPTY, 0}
-}
-
-func WHITE_PAWN() Piece {
-	return Piece{PAWN, WHITE, 1}
-}
-
-func WHITE_KNIGHT() Piece {
-	return Piece{KNIGHT, WHITE, 2}
-}
-
-func WHITE_BISHOP() Piece {
-	return Piece{BISHOP, WHITE, 3}
-}
-
-func WHITE_ROOK() Piece {
-	return Piece{ROOK, WHITE, 4}
-}
-
-func WHITE_QUEEN() Piece {
-	return Piece{QUEEN, WHITE, 5}
-}
-
-func WHITE_KING() Piece {
-	return Piece{KING, WHITE, 6}
-}
-
-func BLACK_PAWN() Piece {
-	return Piece{PAWN, BLACK, 7}
-}
-
-func BLACK_KNIGHT() Piece {
-	return Piece{KNIGHT, BLACK, 8}
-}
-
-func BLACK_BISHOP() Piece {
-	return Piece{BISHOP, BLACK, 9}
-}
-
-func BLACK_ROOK() Piece {
-	return Piece{ROOK, BLACK, 10}
-}
-
-func BLACK_QUEEN() Piece {
-	return Piece{QUEEN, BLACK, 11}
-}
-
-func BLACK_KING() Piece {
-	return Piece{KING, BLACK, 12}
-}
-
 var (
-	DefaultBoard = [8][8]Piece{
-		{BLACK_ROOK(), BLACK_KNIGHT(), BLACK_BISHOP(), BLACK_QUEEN(), BLACK_KING(), BLACK_BISHOP(), BLACK_KNIGHT(), BLACK_ROOK()},
-		{BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN()},
-		{WHITE_ROOK(), WHITE_KNIGHT(), WHITE_BISHOP(), WHITE_QUEEN(), WHITE_KING(), WHITE_BISHOP(), WHITE_KNIGHT(), WHITE_ROOK()},
+	DefaultBoard = [12]uint64{
+		// white pawns (a2–h2)
+		0b0000000000000000000000000000000000000000000000001111111100000000,
+		// white knights (b1 + g1)
+		0b0000000000000000000000000000000000000000000000000000000001000010,
+		// white bishops (c1 + f1)
+		0b0000000000000000000000000000000000000000000000000000000000100100,
+		// white rooks (a1 + h1)
+		0b0000000000000000000000000000000000000000000000000000000010000001,
+		// white queen (d1)
+		0b0000000000000000000000000000000000000000000000000000000000001000,
+		// white king (e1)
+		0b0000000000000000000000000000000000000000000000000000000000010000,
+
+		// black pawns (a7–h7)
+		0b0000000011111111000000000000000000000000000000000000000000000000,
+		// black knights (b8 + g8)
+		0b0100001000000000000000000000000000000000000000000000000000000000,
+		// black bishops (c8 + f8)
+		0b0010010000000000000000000000000000000000000000000000000000000000,
+		// black rooks (a8 + h8)
+		0b1000000100000000000000000000000000000000000000000000000000000000,
+		// black queen (d8)
+		0b0000100000000000000000000000000000000000000000000000000000000000,
+		// black king (e8)
+		0b0001000000000000000000000000000000000000000000000000000000000000,
 	}
 
-	//				  0    1     2     3     4    5     6     7     8     9    10    11    12
 	ascii = []string{" ", "♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"}
 
-	EMPTY = -1
-
-	PAWN          = 0
-	KNIGHT        = 1
-	BISHOP        = 2
-	ROOK          = 3
-	QUEEN         = 4
-	KING          = 5
-	PIECE_VALUES  = map[byte]int{'P': PAWN, 'N': KNIGHT, 'B': BISHOP, 'R': ROOK, 'Q': QUEEN, 'K': KING}
-	PIECE_LETTERS = [6]string{"P", "N", "B", "R", "Q", "K"}
+	INVALID_SQUARE = -1
 
 	WHITE = 0
 	BLACK = 1
 
-	MATE_SCORE  = 100000
-	LIMIT_SCORE = 1000000
+	WHITE_PAWN   = 0
+	WHITE_KNIGHT = 1
+	WHITE_BISHOP = 2
+	WHITE_ROOK   = 3
+	WHITE_QUEEN  = 4
+	WHITE_KING   = 5
+
+	BLACK_PAWN   = 6
+	BLACK_KNIGHT = 7
+	BLACK_BISHOP = 8
+	BLACK_ROOK   = 9
+	BLACK_QUEEN  = 10
+	BLACK_KING   = 11
 )
 
-func GetKey(piece int, color int) int {
-	return color*6 + piece + 1
-}
+// a1 is index 0
+const (
+	a1 = iota
+	b1
+	c1
+	d1
+	e1
+	f1
+	g1
+	h1
+	a2
+	b2
+	c2
+	d2
+	e2
+	f2
+	g2
+	h2
+	a3
+	b3
+	c3
+	d3
+	e3
+	f3
+	g3
+	h3
+	a4
+	b4
+	c4
+	d4
+	e4
+	f4
+	g4
+	h4
+	a5
+	b5
+	c5
+	d5
+	e5
+	f5
+	g5
+	h5
+	a6
+	b6
+	c6
+	d6
+	e6
+	f6
+	g6
+	h6
+	a7
+	b7
+	c7
+	d7
+	e7
+	f7
+	g7
+	h7
+	a8
+	b8
+	c8
+	d8
+	e8
+	f8
+	g8
+	h8
+)
