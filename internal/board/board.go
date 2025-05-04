@@ -3,16 +3,30 @@ package board
 import "fmt"
 
 var (
-	Bitboards   [12]uint64
-	WhitePieces uint64
-	BlackPieces uint64
+	Bitboards [12]uint64
 
-	BCastleKS = false // black can castle kingside until rook or king moves
-	BCastleQS = false // black can castle queenside until rook or king moves
-	WCastleKS = false // white can castle kingside until rook or king moves
-	WCastleQS = false // white can castle queenside until rook or king moves
+	// occupancies
+	Occupancies = [3]uint64{
+		0, // WHITE
+		0, // BLACK
+		0, // BOTH
+	}
+
+	Castle = 0
+	/*
+		0001 = 1 = white kingside
+		0010 = 2 = white queenside
+		0100 = 8 = black kingside
+		1000 = 16 = black queenside
+	*/
+	WK = 1
+	WQ = 2
+	BK = 8
+	BQ = 16
 
 	EnPassant = INVALID_SQUARE // set to the position that a pawn can move to for en passant capturing
+
+	Side = WHITE
 )
 
 func Init(board [12]uint64) {
@@ -20,41 +34,6 @@ func Init(board [12]uint64) {
 
 	InitSlidingAttacks(true)  // bishops
 	InitSlidingAttacks(false) // rooks
-
-	Bitboards = board
-
-	WhitePieces = Bitboards[WHITE_PAWN] |
-		Bitboards[WHITE_KNIGHT] |
-		Bitboards[WHITE_BISHOP] |
-		Bitboards[WHITE_ROOK] |
-		Bitboards[WHITE_QUEEN] |
-		Bitboards[WHITE_KING]
-
-	BlackPieces = Bitboards[BLACK_PAWN] |
-		Bitboards[BLACK_KNIGHT] |
-		Bitboards[BLACK_BISHOP] |
-		Bitboards[BLACK_ROOK] |
-		Bitboards[BLACK_QUEEN] |
-		Bitboards[BLACK_KING]
-
-	// castling
-	// for white the king has to be at e1
-	if LS1B(Bitboards[WHITE_KING]) == e1 {
-		// for kingside the white rook has to be at h1
-		WCastleKS = GetBit(Bitboards[WHITE_ROOK], h1) == 1
-
-		// for queenside the white rook has to be at a1
-		WCastleQS = GetBit(Bitboards[WHITE_ROOK], a1) == 1
-	}
-
-	// for black the king has to be at e8
-	if LS1B(Bitboards[BLACK_KING]) == e8 {
-		// for kingside the black rook has to be at h8
-		BCastleKS = GetBit(Bitboards[BLACK_ROOK], h8) == 1
-
-		// for queenside the black rook has to be at a8
-		BCastleQS = GetBit(Bitboards[BLACK_ROOK], a8) == 1
-	}
 }
 
 func Print() {
@@ -97,20 +76,5 @@ func Print() {
 
 	// letters on bottom
 	fmt.Println("    a  b  c  d  e  f  g  h")
-	fmt.Println()
-}
-
-func PrintBitboard(bitboard uint64) {
-	for rank := 7; rank >= 0; rank-- {
-		for file := 0; file < 8; file++ {
-			square := rank*8 + file
-			if GetBit(bitboard, square) == 1 {
-				fmt.Print("1 ")
-			} else {
-				fmt.Print(". ")
-			}
-		}
-		fmt.Println()
-	}
 	fmt.Println()
 }

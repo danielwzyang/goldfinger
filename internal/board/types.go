@@ -1,6 +1,9 @@
 package board
 
-import "math/bits"
+import (
+	"fmt"
+	"math/bits"
+)
 
 // for bitboard a1 (position 0) is the least significant bit
 
@@ -34,17 +37,28 @@ func LS1B(bitboard uint64) int {
 	return -1
 }
 
+func PrintBitboard(bitboard uint64) {
+	for rank := 7; rank >= 0; rank-- {
+		for file := 0; file < 8; file++ {
+			square := rank*8 + file
+			if GetBit(bitboard, square) == 1 {
+				fmt.Print("1 ")
+			} else {
+				fmt.Print(". ")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+}
+
 type HistoryState struct {
 	LastMove Move
 
 	BitboardA int // board of the piece that moved
 	BitboardB int // board of the piece that was captured (-1 if no capture)
 
-	WCastleKS bool
-	WCastleQS bool
-	BCastleKS bool
-	BCastleQS bool
-
+	Castle    int
 	EnPassant int
 }
 

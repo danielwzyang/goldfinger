@@ -1,7 +1,7 @@
 package board
 
 var (
-	DefaultBoard = [12]uint64{
+	DEFAULTBOARD = [12]uint64{
 		// white pawns (a2–h2)
 		0b0000000000000000000000000000000000000000000000001111111100000000,
 		// white knights (b1 + g1)
@@ -32,23 +32,28 @@ var (
 	ascii = []string{" ", "♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"}
 
 	INVALID_SQUARE = -1
+)
 
-	WHITE = 0
-	BLACK = 1
+const (
+	WHITE = iota
+	BLACK
+	BOTH
+)
 
-	WHITE_PAWN   = 0
-	WHITE_KNIGHT = 1
-	WHITE_BISHOP = 2
-	WHITE_ROOK   = 3
-	WHITE_QUEEN  = 4
-	WHITE_KING   = 5
+const (
+	WHITE_PAWN = iota
+	WHITE_KNIGHT
+	WHITE_BISHOP
+	WHITE_ROOK
+	WHITE_QUEEN
+	WHITE_KING
 
-	BLACK_PAWN   = 6
-	BLACK_KNIGHT = 7
-	BLACK_BISHOP = 8
-	BLACK_ROOK   = 9
-	BLACK_QUEEN  = 10
-	BLACK_KING   = 11
+	BLACK_PAWN
+	BLACK_KNIGHT
+	BLACK_BISHOP
+	BLACK_ROOK
+	BLACK_QUEEN
+	BLACK_KING
 )
 
 // a1 is index 0

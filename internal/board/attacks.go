@@ -21,6 +21,7 @@ var (
 	ROOK_ATTACKS   = [64][4096]uint64{}
 
 	// RELEVANT OCCUPANCY BITS
+	// generated from CountBits(MaskBishopAttacks()) i => [0-64)
 	BISHOP_BITS = [64]uint64{
 		6, 5, 5, 5, 5, 5, 5, 6,
 		5, 5, 5, 5, 5, 5, 5, 5,
