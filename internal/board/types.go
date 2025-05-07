@@ -51,18 +51,3 @@ func PrintBitboard(bitboard uint64) {
 	}
 	fmt.Println()
 }
-
-type HistoryState struct {
-	LastMove Move
-
-	BitboardA int // board of the piece that moved
-	BitboardB int // board of the piece that was captured (-1 if no capture)
-
-	Castle    int
-	EnPassant int
-}
-
-type Move struct {
-	From int
-	To   int
-}

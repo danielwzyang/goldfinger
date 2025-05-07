@@ -79,11 +79,11 @@ func InitSlidingAttacks(bishop bool) {
 			if bishop {
 				magicIndex := (occupancy * BISHOP_MAGIC_NUMBERS[square]) >> (64 - BISHOP_BITS[square])
 
-				BISHOP_ATTACKS[square][magicIndex] = GetBishopAttacksFly(square, occupancy)
+				BISHOP_ATTACKS[square][magicIndex] = PrecomputeBishopAttacks(square, occupancy)
 			} else {
 				magicIndex := (occupancy * ROOK_MAGIC_NUMBERS[square]) >> (64 - ROOK_BITS[square])
 
-				ROOK_ATTACKS[square][magicIndex] = GetRookAttacksFly(square, occupancy)
+				ROOK_ATTACKS[square][magicIndex] = PrecomputeRookAttacks(square, occupancy)
 			}
 		}
 	}
@@ -196,7 +196,7 @@ func MaskRookAttacks(square int) uint64 {
 }
 
 // ATTACK GENERATION FOR SLIDING PIECES
-func GetBishopAttacksFly(square int, blocking uint64) uint64 {
+func PrecomputeBishopAttacks(square int, blocking uint64) uint64 {
 	var attacks uint64
 
 	targetRank := square / 8
@@ -233,7 +233,7 @@ func GetBishopAttacksFly(square int, blocking uint64) uint64 {
 	return attacks
 }
 
-func GetRookAttacksFly(square int, blocking uint64) uint64 {
+func PrecomputeRookAttacks(square int, blocking uint64) uint64 {
 	var attacks uint64
 
 	targetRank := square / 8
@@ -300,5 +300,72 @@ func GetRookAttacks(square int, occupancy uint64) uint64 {
 	occupancy >>= 64 - ROOK_BITS[square]
 
 	return ROOK_ATTACKS[square][occupancy]
+}
 
+func GetQueenAttacks(square int, occupancy uint64) uint64 {
+	return GetBishopAttacks(square, occupancy) | GetRookAttacks(square, occupancy)
+}
+
+func IsSquareAttacked(square int, attacker int) bool {
+	// attacked by white pawn
+	if attacker == WHITE && (PAWN_ATTACKS[BLACK][square]&Bitboards[WHITE_PAWN] != 0) {
+		return true
+	}
+
+	// attacked by black pawn
+	if attacker == BLACK && (PAWN_ATTACKS[WHITE][square]&Bitboards[BLACK_PAWN] != 0) {
+		return true
+	}
+
+	// attacked by white knight
+	if attacker == WHITE && (KNIGHT_ATTACKS[square]&Bitboards[WHITE_KNIGHT] != 0) {
+		return true
+	}
+
+	// attacked by black knight
+	if attacker == BLACK && (KNIGHT_ATTACKS[square]&Bitboards[BLACK_KNIGHT] != 0) {
+		return true
+	}
+
+	// attacked by white king
+	if attacker == WHITE && (KING_ATTACKS[square]&Bitboards[WHITE_KING] != 0) {
+		return true
+	}
+
+	// attacked by black king
+	if attacker == BLACK && (KING_ATTACKS[square]&Bitboards[BLACK_KING] != 0) {
+		return true
+	}
+
+	// attacked by white bishop
+	if attacker == WHITE && (GetBishopAttacks(square, Occupancies[BOTH])&Bitboards[WHITE_BISHOP] != 0) {
+		return true
+	}
+
+	// attacked by black bishop
+	if attacker == BLACK && (GetBishopAttacks(square, Occupancies[BOTH])&Bitboards[BLACK_BISHOP] != 0) {
+		return true
+	}
+
+	// attacked by white rook
+	if attacker == WHITE && (GetRookAttacks(square, Occupancies[BOTH])&Bitboards[WHITE_ROOK] != 0) {
+		return true
+	}
+
+	// attacked by black rook
+	if attacker == BLACK && (GetRookAttacks(square, Occupancies[BOTH])&Bitboards[BLACK_ROOK] != 0) {
+		return true
+	}
+
+	// attacked by white queen
+	if attacker == WHITE && (GetQueenAttacks(square, Occupancies[BOTH])&Bitboards[WHITE_QUEEN] != 0) {
+		return true
+	}
+
+	// attacked by black queen
+	if attacker == BLACK && (GetQueenAttacks(square, Occupancies[BOTH])&Bitboards[BLACK_QUEEN] != 0) {
+		return true
+	}
+
+	return false
 }

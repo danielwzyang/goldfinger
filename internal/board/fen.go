@@ -22,18 +22,16 @@ var CharPieces = map[byte]int{
 
 var regexFEN = regexp.MustCompile(`^([rnbqkpRNBQKP1-8]{1,8}/){7}[rnbqkpRNBQKP1-8]{1,8}\s[bw]\s(-|[KQkq]{1,4})\s(-|[a-h][36])`)
 
+var (
+	DEFAULT_BOARD = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	SEARCH_TESTER = "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
+)
+
 func validFEN(fen string) bool {
 	return regexFEN.MatchString(fen)
 }
 
 func ParseFEN(fen string) {
-	// Reset all board state
-	Side = WHITE
-	Castle = 0
-	EnPassant = INVALID_SQUARE
-	Bitboards = [12]uint64{}
-	Occupancies = [3]uint64{}
-
 	// validate fen
 	if !validFEN(fen) {
 		panic("Invalid FEN format.")

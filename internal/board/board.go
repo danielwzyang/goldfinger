@@ -24,12 +24,12 @@ var (
 	BK = 8
 	BQ = 16
 
-	EnPassant = INVALID_SQUARE // set to the position that a pawn can move to for en passant capturing
-
-	Side = WHITE
+	EnPassant = INVALID_SQUARE
+	Side      = WHITE
+	Fifty     = 0
 )
 
-func Init(board [12]uint64) {
+func Init() {
 	InitNonSlidingAttacks()
 
 	InitSlidingAttacks(true)  // bishops

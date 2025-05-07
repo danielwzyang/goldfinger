@@ -1,11 +1,20 @@
 package main
 
 import (
+	"fmt"
+
 	"danielyang.cc/chess/internal/board"
 )
 
 func main() {
-	board.Init(board.DEFAULTBOARD)
-	board.ParseFEN("1B3K2/1P1pQ3/1nq3p1/PpP5/6p1/2b5/6b1/1k5B w - - 0 1")
+	board.ParseFEN(board.SEARCH_TESTER)
+	board.Init()
 	board.Print()
+
+	moves := board.MoveList{}
+	board.GenerateAllMoves(&moves)
+
+	for i := 0; i < moves.Count; i++ {
+		fmt.Println(board.POSITIONTOSTRING[board.GetSource(moves.Moves[i])], board.POSITIONTOSTRING[board.GetTarget(moves.Moves[i])])
+	}
 }
