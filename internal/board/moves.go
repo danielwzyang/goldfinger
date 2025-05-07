@@ -61,6 +61,8 @@ func GetCastling(move int) int {
 // returns true if legal, false if not
 func MakeMove(move int, flag int) bool {
 	if flag == ALL_MOVES {
+		SaveState()
+
 		source := GetSource(move)
 		target := GetTarget(move)
 		piece := GetPiece(move)
@@ -91,7 +93,7 @@ func MakeMove(move int, flag int) bool {
 				end = BLACK_KING
 			} else {
 				start = WHITE_PAWN
-				start = WHITE_KING
+				end = WHITE_KING
 			}
 
 			for i := start; i <= end; i++ {
@@ -169,9 +171,9 @@ func MakeMove(move int, flag int) bool {
 		// to prevent pseudo legal moves from being made (i.e. still in check)
 		var king int
 		if Side == WHITE {
-			king = WHITE_KING
-		} else {
 			king = BLACK_KING
+		} else {
+			king = WHITE_KING
 		}
 
 		// illegal move, return false
@@ -179,10 +181,8 @@ func MakeMove(move int, flag int) bool {
 			RestoreState()
 			return false
 		}
-	}
-
-	// flag is capture moves only
-	if GetCapture(move) > 0 {
+	} else if GetCapture(move) > 0 {
+		// flag is capture moves only
 		return MakeMove(move, ALL_MOVES)
 	}
 

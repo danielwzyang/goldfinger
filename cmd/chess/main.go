@@ -14,7 +14,9 @@ func main() {
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
 
-	for i := 0; i < moves.Count; i++ {
-		fmt.Println(board.POSITIONTOSTRING[board.GetSource(moves.Moves[i])], board.POSITIONTOSTRING[board.GetTarget(moves.Moves[i])])
-	}
+	move := moves.Moves[0]
+	fmt.Println(board.GetSource(move), board.GetTarget(move))
+	board.MakeMove(move, board.ALL_MOVES)
+
+	board.Print()
 }
