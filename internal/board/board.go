@@ -34,6 +34,8 @@ func Init() {
 
 	InitSlidingAttacks(true)  // bishops
 	InitSlidingAttacks(false) // rooks
+
+	InitEvalTables()
 }
 
 func Print() {
