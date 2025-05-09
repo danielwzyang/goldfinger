@@ -1,11 +1,23 @@
 package board
 
+import "fmt"
+
 const ALL_MOVES = 0
 const ONLY_CAPTURES = 1
 
 type MoveList struct {
 	Moves [256]int
 	Count int
+}
+
+func (moveList *MoveList) ContainsMove(move int) bool {
+	for i := 0; i < moveList.Count; i++ {
+		if moveList.Moves[i] == move {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (moveList *MoveList) AddMove(move int) {
@@ -72,8 +84,13 @@ func MakeMove(move int, flag int) bool {
 		castling := GetCastling(move) > 0
 		double := GetDouble(move) > 0
 
-		// move bit
-		SwapBit(&Bitboards[piece], source, target)
+		// move piece
+		PopBit(&Bitboards[piece], source)
+		SetBit(&Bitboards[piece], target)
+
+		// hash piece
+		ZobristHash ^= PIECE_HASH[piece][source] // remove piece from source square
+		ZobristHash ^= PIECE_HASH[piece][target] // set piece to target square
 
 		Fifty++
 
@@ -100,6 +117,7 @@ func MakeMove(move int, flag int) bool {
 				// capture found, pop bit
 				if GetBit(Bitboards[i], target) != 0 {
 					PopBit(&Bitboards[i], target)
+					ZobristHash ^= PIECE_HASH[i][target]
 					break
 				}
 			}
@@ -108,17 +126,26 @@ func MakeMove(move int, flag int) bool {
 		if promotion > 0 {
 			// pop pawn
 			PopBit(&Bitboards[piece], target)
+			ZobristHash ^= PIECE_HASH[piece][target]
 
+			// add promoted piece
 			SetBit(&Bitboards[promotion], target)
+			ZobristHash ^= PIECE_HASH[promotion][target]
 		}
 
 		if enpassant {
 			// pop captured pawn
 			if Side == WHITE {
 				PopBit(&Bitboards[BLACK_PAWN], target-8)
+				ZobristHash ^= PIECE_HASH[BLACK_PAWN][target-8]
 			} else {
 				PopBit(&Bitboards[WHITE_PAWN], target+8)
+				ZobristHash ^= PIECE_HASH[WHITE_PAWN][target+8]
 			}
+		}
+
+		if EnPassant != INVALID_SQUARE {
+			ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
 		}
 
 		EnPassant = INVALID_SQUARE
@@ -127,8 +154,10 @@ func MakeMove(move int, flag int) bool {
 			// set enpassant target on double pawn push
 			if Side == WHITE {
 				EnPassant = target - 8
+				ZobristHash ^= ENPASSANT_HASH[(target-8)%8]
 			} else {
 				EnPassant = target + 8
+				ZobristHash ^= ENPASSANT_HASH[(target+8)%8]
 			}
 		}
 
@@ -136,51 +165,76 @@ func MakeMove(move int, flag int) bool {
 			switch target {
 			// white kingside
 			case G1:
-				SwapBit(&Bitboards[WHITE_ROOK], H1, F1)
+				PopBit(&Bitboards[WHITE_ROOK], H1)
+				SetBit(&Bitboards[WHITE_ROOK], F1)
+				ZobristHash ^= PIECE_HASH[WHITE_ROOK][H1]
+				ZobristHash ^= PIECE_HASH[WHITE_ROOK][F1]
 			// white queenside
 			case C1:
-				SwapBit(&Bitboards[WHITE_ROOK], A1, D1)
+				PopBit(&Bitboards[WHITE_ROOK], A1)
+				SetBit(&Bitboards[WHITE_ROOK], D1)
+				ZobristHash ^= PIECE_HASH[WHITE_ROOK][A1]
+				ZobristHash ^= PIECE_HASH[WHITE_ROOK][D1]
 			// black kingside
 			case G8:
-				SwapBit(&Bitboards[BLACK_ROOK], H8, F8)
+				PopBit(&Bitboards[BLACK_ROOK], H8)
+				SetBit(&Bitboards[BLACK_ROOK], F8)
+				ZobristHash ^= PIECE_HASH[BLACK_ROOK][H8]
+				ZobristHash ^= PIECE_HASH[BLACK_ROOK][F8]
 			// black queenside
 			case C8:
-				SwapBit(&Bitboards[BLACK_ROOK], A8, D8)
+				PopBit(&Bitboards[BLACK_ROOK], A8)
+				SetBit(&Bitboards[BLACK_ROOK], D8)
+				ZobristHash ^= PIECE_HASH[BLACK_ROOK][A8]
+				ZobristHash ^= PIECE_HASH[BLACK_ROOK][D8]
 			}
 		}
 
+		ZobristHash ^= CASTLE_HASH[Castle]
+
+		// update castling rights
 		Castle &= CASTLING_RIGHTS[source]
 		Castle &= CASTLING_RIGHTS[target]
 
-		// occupancies
+		ZobristHash ^= CASTLE_HASH[Castle]
+
+		// reset occupancies
 		Occupancies = [3]uint64{0, 0, 0}
 
+		// update white occupancies
 		for i := WHITE_PAWN; i <= WHITE_KING; i++ {
 			Occupancies[WHITE] |= Bitboards[i]
 		}
 
+		// update black occupancies
 		for i := BLACK_PAWN; i <= BLACK_KING; i++ {
 			Occupancies[BLACK] |= Bitboards[i]
 		}
 
+		// update both sides occupancies
 		Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
 
-		// flip side
+		// change side
 		Side ^= 1
+
+		// hash side
+		ZobristHash ^= SIDE_HASH
 
 		// to prevent pseudo legal moves from being made (i.e. still in check)
 		var king int
 		if Side == WHITE {
-			king = BLACK_KING
+			king = LS1B(Bitboards[BLACK_KING])
 		} else {
-			king = WHITE_KING
+			king = LS1B(Bitboards[WHITE_KING])
 		}
 
 		// illegal move, return false
-		if IsSquareAttacked(LS1B(Bitboards[king]), Side) {
+		if IsSquareAttacked(king, Side) {
 			RestoreState()
 			return false
 		}
+
+		return true
 	} else if GetCapture(move) > 0 {
 		// flag is capture moves only
 		return MakeMove(move, ALL_MOVES)
@@ -188,4 +242,102 @@ func MakeMove(move int, flag int) bool {
 
 	// not a capture + flag is captures only
 	return false
+}
+
+func MakeNullMove() {
+	SaveState()
+
+	if EnPassant != INVALID_SQUARE {
+		ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
+	}
+	EnPassant = INVALID_SQUARE
+
+	Side ^= 1
+	ZobristHash ^= SIDE_HASH
+}
+
+func StringToPos(input string) int {
+	file := int(input[0] - 'a')
+	rank := int(input[1] - '1')
+	return rank*8 + file
+}
+
+func MoveToString(move int) string {
+	return POSITIONTOSTRING[GetSource(move)] + POSITIONTOSTRING[GetTarget(move)]
+}
+
+// assumes player is always white
+func StringToWhiteMove(input string) int {
+	source := StringToPos(input[:2])
+	target := StringToPos(input[2:4])
+
+	// finding piece
+	piece := 0
+	for i := WHITE_PAWN; i <= WHITE_KING; i++ {
+		if GetBit(Bitboards[i], source) > 0 {
+			piece = i
+			break
+		}
+	}
+
+	// pawn promotion
+	promotion := 0
+	if len(input) == 5 {
+		switch input[4] {
+		case 'n':
+			promotion = WHITE_KNIGHT
+		case 'b':
+			promotion = WHITE_BISHOP
+		case 'r':
+			promotion = WHITE_ROOK
+		case 'q':
+			promotion = WHITE_QUEEN
+		}
+	}
+
+	// double push
+	double := 0
+	if piece == WHITE_PAWN && target-source == 16 {
+		double = 1
+	}
+
+	// finding capture and enpass
+	capture := 0
+	enpass := 0
+
+	if target == EnPassant {
+		capture = 1
+		enpass = 1
+	} else if GetBit(Occupancies[BLACK], target) > 0 {
+		capture = 1
+	}
+
+	// castling
+	castle := 0
+	if piece == WHITE_KING {
+		// white kingside castle
+		if source == E1 && target == G1 {
+			castle = 1
+		}
+
+		// white queenside castle
+		if source == E1 && target == C1 {
+			castle = 1
+		}
+	}
+
+	return EncodeMove(source, target, piece, promotion, capture, double, enpass, castle)
+}
+
+func PrintMove(move int) {
+	source := POSITIONTOSTRING[GetSource(move)]
+	target := POSITIONTOSTRING[GetTarget(move)]
+	piece := ascii[GetPiece(move)+1]
+	promotion := min(1, GetPromotion(move))
+	capture := min(1, GetCapture(move))
+	enpassant := min(1, GetEnPassant(move))
+	castling := min(1, GetCastling(move))
+	double := min(1, GetDouble(move))
+
+	fmt.Printf("%s%s, %s, promotion: %d, capture: %d, enpassant: %d, castling: %d, double: %d\n", source, target, piece, promotion, capture, enpassant, castling, double)
 }

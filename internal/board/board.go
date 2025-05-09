@@ -16,13 +16,13 @@ var (
 	/*
 		0001 = 1 = white kingside
 		0010 = 2 = white queenside
-		0100 = 8 = black kingside
-		1000 = 16 = black queenside
+		0100 = 4 = black kingside
+		1000 = 8 = black queenside
 	*/
 	WK = 1
 	WQ = 2
-	BK = 8
-	BQ = 16
+	BK = 4
+	BQ = 8
 
 	EnPassant = INVALID_SQUARE
 	Side      = WHITE
@@ -36,6 +36,8 @@ func Init() {
 	InitSlidingAttacks(false) // rooks
 
 	InitEvalTables()
+
+	InitZobristTables()
 }
 
 func Print() {

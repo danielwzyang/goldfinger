@@ -8,6 +8,8 @@ func GenerateAllMoves(moves *MoveList) {
 	GenerateKnightMoves(moves)
 	GenerateBishopMoves(moves)
 	GenerateRookMoves(moves)
+	GenerateQueenMoves(moves)
+	GenerateKingMoves(moves)
 }
 
 func GeneratePawnMoves(moves *MoveList) {
@@ -23,7 +25,7 @@ func GeneratePawnMoves(moves *MoveList) {
 			target = source + 8
 
 			// quiet moves
-			if GetBit(Occupancies[BOTH], target) == 0 {
+			if target <= H8 && GetBit(Occupancies[BOTH], target) == 0 {
 				// promotion
 				if source >= A7 && source <= H7 {
 					moves.AddMove(EncodeMove(source, target, WHITE_PAWN, WHITE_KNIGHT, 0, 0, 0, 0))
@@ -60,9 +62,13 @@ func GeneratePawnMoves(moves *MoveList) {
 				PopBit(&attacks, target)
 			}
 
-			// valid enpassant
-			if EnPassant != INVALID_SQUARE && PAWN_ATTACKS[Side][source]&(1<<EnPassant) != 0 {
-				moves.AddMove(EncodeMove(source, EnPassant, WHITE_PAWN, 0, 1, 0, 1, 0))
+			// en passant
+			if EnPassant != INVALID_SQUARE {
+				enpassant_attacks := PAWN_ATTACKS[Side][source] & (1 << EnPassant)
+				if enpassant_attacks != 0 {
+					target = LS1B(enpassant_attacks)
+					moves.AddMove(EncodeMove(source, target, WHITE_PAWN, 0, 1, 0, 1, 0))
+				}
 			}
 
 			PopBit(&bitboard, source)
@@ -78,7 +84,7 @@ func GeneratePawnMoves(moves *MoveList) {
 		target = source - 8
 
 		// quiet moves
-		if GetBit(Occupancies[BOTH], target) == 0 {
+		if target >= A1 && GetBit(Occupancies[BOTH], target) == 0 {
 			// promotion
 			if source >= A2 && source <= H2 {
 				moves.AddMove(EncodeMove(source, target, BLACK_PAWN, BLACK_KNIGHT, 0, 0, 0, 0))
@@ -115,9 +121,13 @@ func GeneratePawnMoves(moves *MoveList) {
 			PopBit(&attacks, target)
 		}
 
-		// valid enpassant
-		if EnPassant != INVALID_SQUARE && PAWN_ATTACKS[Side][source]&(1<<EnPassant) != 0 {
-			moves.AddMove(EncodeMove(source, EnPassant, BLACK_PAWN, 0, 1, 0, 1, 0))
+		// en passant
+		if EnPassant != INVALID_SQUARE {
+			enpassant_attacks := PAWN_ATTACKS[Side][source] & (1 << EnPassant)
+			if enpassant_attacks != 0 {
+				target = LS1B(enpassant_attacks)
+				moves.AddMove(EncodeMove(source, target, BLACK_PAWN, 0, 1, 0, 1, 0))
+			}
 		}
 
 		PopBit(&bitboard, source)
@@ -145,13 +155,13 @@ func GenerateCastleMoves(moves *MoveList) {
 	if Castle&BK != 0 && // can castle
 		GetBit(Occupancies[BOTH], F8) == 0 && GetBit(Occupancies[BOTH], G8) == 0 && // squares are empty
 		!IsSquareAttacked(E8, BLACK) && !IsSquareAttacked(F8, BLACK) { // king and f8 aren't in check
-		moves.AddMove(EncodeMove(E8, G8, WHITE_KING, 0, 0, 0, 0, 1))
+		moves.AddMove(EncodeMove(E8, G8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 
 	if Castle&BQ != 0 && // can castle
 		GetBit(Occupancies[BOTH], D8) == 0 && GetBit(Occupancies[BOTH], C8) == 0 && GetBit(Occupancies[BOTH], B8) == 0 && // squares are empty
 		!IsSquareAttacked(E8, BLACK) && !IsSquareAttacked(D8, BLACK) { // king and d8 aren't in check
-		moves.AddMove(EncodeMove(E8, C8, WHITE_KING, 0, 0, 0, 0, 1))
+		moves.AddMove(EncodeMove(E8, C8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 }
 

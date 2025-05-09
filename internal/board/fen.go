@@ -86,9 +86,7 @@ func ParseFEN(fen string) {
 
 	// en passant
 	if parts[3] != "-" {
-		file := int(parts[3][0] - 'a')
-		rank := int(parts[3][1] - '1')
-		EnPassant = rank*8 + file
+		EnPassant = StringToPos(parts[3])
 	} else {
 		EnPassant = INVALID_SQUARE
 	}

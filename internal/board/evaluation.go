@@ -152,6 +152,9 @@ var (
 
 	mgTable = [2][6][64]int{} // [color][piece][square]
 	egTable = [2][6][64]int{} // [color][piece][square]
+
+	MATE        = 10000
+	LIMIT_SCORE = 20000
 )
 
 func InitEvalTables() {
@@ -167,6 +170,10 @@ func InitEvalTables() {
 }
 
 func Evaluate() int {
+	if Fifty >= 100 {
+		return 0
+	}
+
 	gamePhase := 0
 
 	mgScore := 0
