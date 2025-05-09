@@ -4,65 +4,61 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-func quiesce(alpha int, beta int, currentColor int) int {
-	standPat := Evaluate(currentColor)
-	bestScore := standPat
+const DELTA_MARGIN = 975
 
-	// fail hard
-	if standPat >= beta {
-		return standPat
+func quiesce(alpha, beta int) int {
+	standpat := board.Evaluate()
+
+	if standpat >= beta {
+		return beta
+	}
+	if standpat > alpha {
+		alpha = standpat
 	}
 
-	captures := board.GetCaptureMoves(currentColor)
+	moves := board.MoveList{}
+	board.GenerateAllMoves(&moves)
 
-	moveScores := make([]int, len(captures))
-
-	for i, move := range captures {
-		attacker := board.Board[move.From.Rank][move.From.File]
-		victim := board.Board[move.To.Rank][move.To.File]
-		// basic static exchange eval
-		moveScores[i] = pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
+	scores := make([]int, moves.Count)
+	for i := 0; i < moves.Count; i++ {
+		scores[i] = getMVVLVA(moves.Moves[i])
 	}
 
-	if len(captures) > 2 {
-		insertionSort(captures, moveScores)
-	}
+	sortMoves(&moves, scores)
 
-	for _, capture := range captures {
-		// delta pruning skips captures that dont raise alpha + prune if see < 0
-		attacker := board.Board[capture.From.Rank][capture.From.File]
-		victim := board.Board[capture.To.Rank][capture.To.File]
-		see := pieceWeights[victim.Type] - pieceWeights[attacker.Type]
-		if see < 0 || standPat+see+200 <= alpha {
+	delta := DELTA_MARGIN
+
+	for _, move := range moves.Moves {
+		mvvlva := getMVVLVA(move)
+		if mvvlva < 0 {
+			break
+		}
+
+		if standpat+mvvlva+delta < alpha {
 			continue
 		}
 
-		board.MakeMove(capture)
+		board.REPETITION_INDEX++
+		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
 
-		// pawn promotion
-		if board.Board[capture.To.Rank][capture.To.File].Type == board.PAWN && (capture.To.Rank == 0 || capture.To.Rank == 7) {
-			// automatically promote to queen
-			board.Board[capture.To.Rank][capture.To.File] = board.Piece{
-				Type:  board.QUEEN,
-				Color: currentColor,
-				Key:   currentColor*6 + board.QUEEN + 1,
-			}
+		if !board.MakeMove(move, board.ONLY_CAPTURES) {
+			board.REPETITION_INDEX--
+			continue
 		}
 
-		score := -quiesce(-beta, -alpha, currentColor^1)
+		score := -quiesce(-beta, -alpha)
 
-		board.UndoMove()
+		board.REPETITION_INDEX--
 
-		if score >= beta {
-			return score
-		}
-		if score > bestScore {
-			bestScore = score
-		}
+		board.RestoreState()
+
 		if score > alpha {
 			alpha = score
+			if score >= beta {
+				return beta
+			}
 		}
 	}
 
-	return bestScore
+	return alpha
 }

@@ -1,119 +1,116 @@
 package board
 
-type BoardState struct {
-	LastMove Move
-	PieceA   Piece // piece that was moved
-	PieceB   Piece // piece that was "captured" / empty piece
+var ascii = []string{" ", "♟", "♞", "♝", "♜", "♛", "♚", "♙", "♘", "♗", "♖", "♕", "♔"}
 
-	WCastleKS bool
-	WCastleQS bool
-	BCastleKS bool
-	BCastleQS bool
-
-	EnPassant Position
-}
-
-type Position struct {
-	Rank int
-	File int
-}
-
-type Move struct {
-	From Position
-	To   Position
-}
-
-type Piece struct {
-	Type  int
-	Color int
-	Key   int
-}
-
-func EMPTY_PIECE() Piece {
-	return Piece{EMPTY, EMPTY, 0}
-}
-
-func WHITE_PAWN() Piece {
-	return Piece{PAWN, WHITE, 1}
-}
-
-func WHITE_KNIGHT() Piece {
-	return Piece{KNIGHT, WHITE, 2}
-}
-
-func WHITE_BISHOP() Piece {
-	return Piece{BISHOP, WHITE, 3}
-}
-
-func WHITE_ROOK() Piece {
-	return Piece{ROOK, WHITE, 4}
-}
-
-func WHITE_QUEEN() Piece {
-	return Piece{QUEEN, WHITE, 5}
-}
-
-func WHITE_KING() Piece {
-	return Piece{KING, WHITE, 6}
-}
-
-func BLACK_PAWN() Piece {
-	return Piece{PAWN, BLACK, 7}
-}
-
-func BLACK_KNIGHT() Piece {
-	return Piece{KNIGHT, BLACK, 8}
-}
-
-func BLACK_BISHOP() Piece {
-	return Piece{BISHOP, BLACK, 9}
-}
-
-func BLACK_ROOK() Piece {
-	return Piece{ROOK, BLACK, 10}
-}
-
-func BLACK_QUEEN() Piece {
-	return Piece{QUEEN, BLACK, 11}
-}
-
-func BLACK_KING() Piece {
-	return Piece{KING, BLACK, 12}
-}
-
-var (
-	DefaultBoard = [8][8]Piece{
-		{BLACK_ROOK(), BLACK_KNIGHT(), BLACK_BISHOP(), BLACK_QUEEN(), BLACK_KING(), BLACK_BISHOP(), BLACK_KNIGHT(), BLACK_ROOK()},
-		{BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN(), BLACK_PAWN()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE(), EMPTY_PIECE()},
-		{WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN(), WHITE_PAWN()},
-		{WHITE_ROOK(), WHITE_KNIGHT(), WHITE_BISHOP(), WHITE_QUEEN(), WHITE_KING(), WHITE_BISHOP(), WHITE_KNIGHT(), WHITE_ROOK()},
-	}
-
-	//				  0    1     2     3     4    5     6     7     8     9    10    11    12
-	ascii = []string{" ", "♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"}
-
-	EMPTY = -1
-
-	PAWN          = 0
-	KNIGHT        = 1
-	BISHOP        = 2
-	ROOK          = 3
-	QUEEN         = 4
-	KING          = 5
-	PIECE_VALUES  = map[byte]int{'P': PAWN, 'N': KNIGHT, 'B': BISHOP, 'R': ROOK, 'Q': QUEEN, 'K': KING}
-	PIECE_LETTERS = [6]string{"P", "N", "B", "R", "Q", "K"}
-
-	WHITE = 0
-	BLACK = 1
-
-	MATE_SCORE  = 100000
-	LIMIT_SCORE = 1000000
+const (
+	WHITE = iota
+	BLACK
+	BOTH
 )
 
-func GetKey(piece int, color int) int {
-	return color*6 + piece + 1
+const (
+	WHITE_PAWN = iota
+	WHITE_KNIGHT
+	WHITE_BISHOP
+	WHITE_ROOK
+	WHITE_QUEEN
+	WHITE_KING
+
+	BLACK_PAWN
+	BLACK_KNIGHT
+	BLACK_BISHOP
+	BLACK_ROOK
+	BLACK_QUEEN
+	BLACK_KING
+)
+
+// a1 is index 0
+const (
+	INVALID_SQUARE = iota - 1
+	A1
+	B1
+	C1
+	D1
+	E1
+	F1
+	G1
+	H1
+	A2
+	B2
+	C2
+	D2
+	E2
+	F2
+	G2
+	H2
+	A3
+	B3
+	C3
+	D3
+	E3
+	F3
+	G3
+	H3
+	A4
+	B4
+	C4
+	D4
+	E4
+	F4
+	G4
+	H4
+	A5
+	B5
+	C5
+	D5
+	E5
+	F5
+	G5
+	H5
+	A6
+	B6
+	C6
+	D6
+	E6
+	F6
+	G6
+	H6
+	A7
+	B7
+	C7
+	D7
+	E7
+	F7
+	G7
+	H7
+	A8
+	B8
+	C8
+	D8
+	E8
+	F8
+	G8
+	H8
+)
+
+var POSITIONTOSTRING = [64]string{
+	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+	"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+	"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+	"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+	"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+	"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+}
+
+var CASTLING_RIGHTS = [64]int{
+	13, 15, 15, 15, 12, 15, 15, 14,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	7, 15, 15, 15, 3, 15, 15, 11,
 }

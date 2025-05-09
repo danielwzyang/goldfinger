@@ -1,54 +1,39 @@
 package engine
 
-import (
-	"time"
+import "time"
 
-	"danielyang.cc/chess/internal/board"
-	"danielyang.cc/chess/internal/transposition"
-)
-
-var (
-	type_       byte
-	engineColor int
-	searchDepth int
-)
-
-func Init(t byte, c int, d int) {
-	type_ = t
-	engineColor = c
-	searchDepth = d
-	transposition.Init()
-	InitEvalTables()
+type Options struct {
+	SearchDepth int
+	Type        byte
 }
 
-func MakeMove() (string, int) {
+var (
+	searchDepth int
+	t           byte
+)
+
+func Init(options Options) {
+	searchDepth = options.SearchDepth
+
+	t = options.Type
+	if t != 'r' && t != 'n' {
+		panic("Input r or n as an engine type.")
+	}
+}
+
+func FindMove() (int, int) {
 	start := time.Now()
 
-	switch type_ {
+	switch t {
 	case 'r':
-		return makeRandomMove(), timeSince(start)
+		return randomMove(), timeSince(start)
 	case 'n':
 		return iterativeDeepening(), timeSince(start)
 	}
 
-	return "", 0
+	return 0, 0
 }
 
 func timeSince(start time.Time) int {
 	return int(time.Since(start).Milliseconds())
-}
-
-func numericToAlgebraic(position board.Position) string {
-	piece := ""
-
-	if board.Board[position.Rank][position.File].Type == board.PAWN {
-		piece = ""
-	} else {
-		piece = board.PIECE_LETTERS[board.Board[position.Rank][position.File].Type]
-	}
-
-	letter := rune(position.File + 97) // 'a' is 97
-	number := rune(56 - position.Rank) // '8' is 56
-
-	return piece + string(letter) + string(number)
 }

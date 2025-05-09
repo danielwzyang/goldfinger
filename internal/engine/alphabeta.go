@@ -4,205 +4,195 @@ import (
 	"math"
 
 	"danielyang.cc/chess/internal/board"
-	"danielyang.cc/chess/internal/transposition"
 )
 
-var killerMoves = map[int]board.Move{}
-var historyHeuristic = [6][64]int{}
+func iterativeDeepening() int {
+	move := 0
+	score := 0
 
-func alphaBeta(alpha int, beta int, depthLeft int, currentColor int) (board.Move, int) {
-	nextColor := currentColor ^ 1
+	alpha := -board.LIMIT_SCORE
+	beta := board.LIMIT_SCORE
 
-	// stabilize with quiescence
-	if depthLeft <= 0 {
-		return board.Move{}, quiesce(alpha, beta, currentColor)
+	for depth := 1; depth <= searchDepth; depth++ {
+		move, score = alphaBeta(alpha, beta, searchDepth)
+
+		if score <= alpha || score >= beta {
+			alpha = -board.LIMIT_SCORE
+			beta = board.LIMIT_SCORE
+			continue
+		}
+
+		alpha = score - 50
+		beta = score + 50
 	}
 
-	// check transposition table
-	entry, pv := transposition.GetEntry(currentColor)
+	return move
+}
 
-	// if entry exists and this current search will not search deeper than the entry
-	if pv && entry.DepthLeft >= depthLeft {
-		switch entry.Type {
-		case transposition.PVNode:
-			// exact score
-			return entry.BestMove, entry.Score
-		case transposition.AllNode:
-			// upper bound
-			if entry.Score <= alpha {
-				return entry.BestMove, entry.Score
+func alphaBeta(alpha, beta, depth int) (int, int) {
+	// draw
+	if depth == searchDepth && board.IsRepetition() || board.Fifty >= 100 {
+		return 0, 0
+	}
+
+	// pv node
+	pv := beta-alpha > 1
+
+	// tt entry
+	ttEntry, found := board.GetTTEntry()
+	if depth != searchDepth && !pv && found && ttEntry.Depth >= depth {
+		switch ttEntry.Type {
+		case board.PVNode:
+			return ttEntry.Move, ttEntry.Score
+		case board.CutNode:
+			if ttEntry.Score >= beta {
+				return ttEntry.Move, ttEntry.Score
 			}
-		case transposition.CutNode:
-			// lower bound
-			if entry.Score >= beta {
-				return entry.BestMove, entry.Score
+		case board.AllNode:
+			if ttEntry.Score <= alpha {
+				return ttEntry.Move, ttEntry.Score
 			}
 		}
 	}
 
-	// null move pruning
-	if !pv && searchDepth > depthLeft && depthLeft >= 3 && beta-alpha > 1 && !board.InCheck(currentColor) {
-		// reduction factor
-		const R = 2
-
-		_, nullEval := alphaBeta(-beta, -beta+1, depthLeft-1-R, nextColor)
-		nullEval *= -1
-
-		if nullEval >= beta {
-			return board.Move{}, nullEval
-		}
-	}
-
-	bestScore := -board.LIMIT_SCORE
-	var bestMove board.Move
-
-	var moves []board.Move
-
-	// if transposition table has entry then sorted moves are in there otherwise sort moves
-	if pv {
-		moves = entry.SortedMoves
-	} else {
-		var n int
-		moves, n = board.GetAllValidMoves(currentColor)
-
-		if len(moves) > 2 {
-			// score moves based on killer heuristic and mvv lva
-			moveScores := make([]int, n)
-
-			for i, move := range moves {
-				score := 0
-
-				// killer heuristic
-				if killerMoves[depthLeft] == move {
-					score += 10000
-				}
-
-				// if capture add mvv-lva score
-				if board.IsCapture(move) {
-					attacker := board.Board[move.From.Rank][move.From.File]
-					victim := board.Board[move.To.Rank][move.To.File]
-					score += pieceWeights[victim.Type]*13 - pieceWeights[attacker.Type]
-				} else {
-					// history heuristic for quiet moves
-					piece := board.Board[move.From.Rank][move.From.File].Type
-					index := move.To.Rank*8 + move.To.File
-					score += historyHeuristic[piece][index]
-				}
-
-				moveScores[i] = score
-			}
-
-			insertionSort(moves, moveScores)
-		}
+	// quiesce
+	if depth == 0 {
+		return 0, quiesce(alpha, beta)
 	}
 
 	originalAlpha := alpha
+	bestScore := -board.LIMIT_SCORE
+	bestMove := 0
 
-	// search
-	for moveCount, move := range moves {
-		capture := board.IsCapture(move)
-		// make move
-		board.MakeMove(move)
+	var king int
+	if board.Side == board.WHITE {
+		king = board.WHITE_KING
+	} else {
+		king = board.BLACK_KING
+	}
 
-		// pawn promotion
-		promotion := board.Board[move.To.Rank][move.To.File].Type == board.PAWN && (move.To.Rank == 0 || move.To.Rank == 7)
-		if promotion {
-			// automatically promote to queen
-			board.Board[move.To.Rank][move.To.File] = board.Piece{
-				Type:  board.QUEEN,
-				Color: currentColor,
-				Key:   currentColor*6 + board.QUEEN + 1,
-			}
+	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
+
+	// increase depth in check
+	if inCheck {
+		depth++
+	}
+
+	// null move pruning
+	if depth >= 3 && depth != searchDepth && !inCheck && board.HasNonPawnMaterial() {
+		board.MakeNullMove()
+
+		board.REPETITION_INDEX++
+		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
+
+		// reduction factor = 2
+		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
+		nullEval *= -1
+
+		board.REPETITION_INDEX--
+
+		board.RestoreState()
+
+		if nullEval >= beta {
+			return 0, beta
+		}
+	}
+
+	moves := board.MoveList{}
+	board.GenerateAllMoves(&moves)
+	scores := make([]int, moves.Count)
+
+	for i := 0; i < moves.Count; i++ {
+		if found && moves.Moves[i] == ttEntry.Move {
+			// pv move
+			scores[i] = 20000
+			continue
 		}
 
-		// late move reduction
+		scores[i] = scoreMove(moves.Moves[i], depth)
+	}
+
+	sortMoves(&moves, scores)
+	legalMoves := 0
+
+	for moveCount, move := range moves.Moves {
+		board.REPETITION_INDEX++
+		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
+
+		if !board.MakeMove(move, board.ALL_MOVES) {
+			board.REPETITION_INDEX--
+			continue
+		}
+		legalMoves++
+
 		var reduction int
-		if depthLeft < 3 || moveCount <= 3 || board.InCheck(currentColor) {
+		if depth < 3 || moveCount <= 3 || inCheck {
 			reduction = 0
-		} else if promotion || capture {
-			reduction = int(0.20 + math.Log(float64(depthLeft))*math.Log(float64(moveCount))/3.35)
+		} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
+			reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
 		} else {
-			reduction = int(1.35 + math.Log(float64(depthLeft))*math.Log(float64(moveCount))/2.75)
+			reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
 		}
 
-		_, score := alphaBeta(-beta, -alpha, depthLeft-reduction-1, nextColor)
+		if reduction >= depth {
+			reduction = depth - 1
+		}
 
-		// one colors max is the other colors min
+		_, score := alphaBeta(-beta, -alpha, depth-1-reduction)
 		score *= -1
 
-		board.UndoMove()
+		board.REPETITION_INDEX--
 
-		// updating max
-		if score > bestScore {
+		board.RestoreState()
+
+		if score > alpha {
 			bestScore = score
 			bestMove = move
-		}
 
-		if bestScore > alpha {
-			alpha = bestScore
-		}
-
-		// record killer move for current depth
-		// killer move means that it causes a cutoff meaning
-		// killer moves are strong moves because they reduces the number of possibilities
-		// use history heuristic if quiet killer
-		if alpha >= beta {
-			// record quiet killer in history
-			if !capture {
-				piece := board.Board[move.From.Rank][move.From.File].Type
-				index := move.To.Rank*8 + move.To.File
-				historyHeuristic[piece][index] += depthLeft * depthLeft
+			if board.GetCapture(move) == 0 {
+				historyHeuristic[board.GetPiece(move)][board.GetTarget(move)] += depth
 			}
 
-			// this is a new found killer so we can add it and use it in our move ordering
-			if killerMoves[depthLeft] != move {
-				killerMoves[depthLeft] = move
+			alpha = score
+
+			if score >= beta {
+				// store cutoff in tt
+				board.AddTTEntry(bestMove, beta, depth, board.CutNode)
+
+				// killer heuristic
+				if board.GetCapture(move) == 0 {
+					killerHeuristic[depth][1] = killerHeuristic[depth][0]
+					killerHeuristic[depth][0] = move
+				}
+
+				// fail high
+				return move, beta
 			}
 
-			break
 		}
 	}
 
-	// handle move not found
-	if bestScore == -board.LIMIT_SCORE {
-		// this is likely checkmate or stalemate
-		if board.InCheck(currentColor) {
-			return board.Move{}, -board.MATE_SCORE + depthLeft
-		} else {
-			return board.Move{}, 0
+	// no legal moves found
+	if legalMoves == 0 {
+		// checkmate
+		if inCheck {
+			return 0, -board.MATE + depth
 		}
+		// stalemate
+		return 0, 0
 	}
 
-	var nodeType transposition.NodeType
+	// update tt
+	nodeType := board.AllNode
 	if bestScore <= originalAlpha {
-		// upper bound
-		nodeType = transposition.AllNode
+		nodeType = board.AllNode
 	} else if bestScore >= beta {
-		// lower bound
-		nodeType = transposition.CutNode
+		nodeType = board.CutNode
 	} else {
-		// exact
-		nodeType = transposition.PVNode
+		nodeType = board.PVNode
 	}
 
-	transposition.AddEntry(nodeType, bestMove, bestScore, depthLeft, moves, currentColor)
+	board.AddTTEntry(bestMove, bestScore, depth, nodeType)
 
 	return bestMove, bestScore
-}
-
-func insertionSort(moves []board.Move, moveScores []int) {
-	for i := 1; i < len(moves); i++ {
-		currentMove := moves[i]
-		currentScore := moveScores[i]
-		j := i - 1
-
-		for j >= 0 && moveScores[j] < currentScore {
-			moves[j+1] = moves[j]
-			moveScores[j+1] = moveScores[j]
-			j--
-		}
-
-		moves[j+1] = currentMove
-		moveScores[j+1] = currentScore
-	}
 }
