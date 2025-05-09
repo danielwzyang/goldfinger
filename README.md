@@ -1,6 +1,8 @@
 # Chess Engine
 
 ## Current Functionalities
+- FEN Processing
+- Pseudo Legal Move Generation with Magic Bitboards
 - Alpha-Beta Pruning with the Negamax framework
 - Iterative Deepening
 - Late Move Reduction
