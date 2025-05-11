@@ -26,7 +26,6 @@ var (
 
 	EnPassant = INVALID_SQUARE
 	Side      = WHITE
-	Fifty     = 0
 )
 
 func Init() {
@@ -40,7 +39,16 @@ func Init() {
 	InitZobristTables()
 }
 
-func Print() {
+func Print(lastMove int) {
+	source := GetSource(lastMove)
+	target := GetTarget(lastMove)
+
+	if lastMove == 0 {
+		source = -1
+		target = -1
+	}
+
+	green := "\033[42m"
 	gray := "\033[2;37m"
 	reset := "\033[0m"
 
@@ -57,14 +65,23 @@ func Print() {
 
 			for piece, bitboard := range Bitboards {
 				if GetBit(bitboard, square) == 1 {
-					fmt.Printf("%s\ufe0e %s│%s", ascii[piece+1], gray, reset)
+					if square == target {
+						fmt.Printf("%s%s\ufe0e %s%s│%s", green, ascii[piece+1], reset, gray, reset)
+					} else {
+						fmt.Printf("%s\ufe0e %s│%s", ascii[piece+1], gray, reset)
+					}
+
 					occupied = true
 					break
 				}
 			}
 
 			if !occupied {
-				fmt.Printf("%s\ufe0e %s│%s", ascii[0], gray, reset)
+				if square == source {
+					fmt.Printf("%s%s\ufe0e %s%s│%s", green, ascii[0], reset, gray, reset)
+				} else {
+					fmt.Printf("%s\ufe0e %s│%s", ascii[0], gray, reset)
+				}
 			}
 		}
 

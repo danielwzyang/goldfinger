@@ -28,7 +28,7 @@ func FindMove() (int, int) {
 	case 'r':
 		return randomMove(), timeSince(start)
 	case 'n':
-		return iterativeDeepening(), timeSince(start)
+		return alphaBetaWrapper(), timeSince(start)
 	}
 
 	return 0, 0

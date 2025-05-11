@@ -41,18 +41,22 @@ func sortMoves(moves *board.MoveList, scores []int) {
 }
 
 func scoreMove(move int, depth int) int {
+	score := 0
+
 	if board.GetCapture(move) > 0 {
-		return getMVVLVA(move)
+		score += getMVVLVA(move)
 	}
 
 	if killerHeuristic[depth][0] == move {
-		return 9000
+		score += 9000
 	}
 	if killerHeuristic[depth][1] == move {
-		return 8000
+		score += 8000
 	}
 
-	return historyHeuristic[board.GetPiece(move)][board.GetTarget(move)]
+	score += historyHeuristic[board.GetPiece(move)][board.GetTarget(move)]
+
+	return score
 }
 
 func getMVVLVA(move int) int {

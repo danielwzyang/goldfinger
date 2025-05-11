@@ -6,35 +6,12 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-func iterativeDeepening() int {
-	move := 0
-	score := 0
-
-	alpha := -board.LIMIT_SCORE
-	beta := board.LIMIT_SCORE
-
-	for depth := 1; depth <= searchDepth; depth++ {
-		move, score = alphaBeta(alpha, beta, searchDepth)
-
-		if score <= alpha || score >= beta {
-			alpha = -board.LIMIT_SCORE
-			beta = board.LIMIT_SCORE
-			continue
-		}
-
-		alpha = score - 50
-		beta = score + 50
-	}
-
+func alphaBetaWrapper() int {
+	move, _ := alphaBeta(-board.LIMIT_SCORE, board.LIMIT_SCORE, searchDepth)
 	return move
 }
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
-	// draw
-	if depth == searchDepth && board.IsRepetition() || board.Fifty >= 100 {
-		return 0, 0
-	}
-
 	// pv node
 	pv := beta-alpha > 1
 
@@ -60,10 +37,6 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		return 0, quiesce(alpha, beta)
 	}
 
-	originalAlpha := alpha
-	bestScore := -board.LIMIT_SCORE
-	bestMove := 0
-
 	var king int
 	if board.Side == board.WHITE {
 		king = board.WHITE_KING
@@ -79,17 +52,12 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	}
 
 	// null move pruning
-	if depth >= 3 && depth != searchDepth && !inCheck && board.HasNonPawnMaterial() {
+	if depth >= 3 && depth != searchDepth && !inCheck {
 		board.MakeNullMove()
-
-		board.REPETITION_INDEX++
-		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
 
 		// reduction factor = 2
 		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
 		nullEval *= -1
-
-		board.REPETITION_INDEX--
 
 		board.RestoreState()
 
@@ -97,6 +65,10 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 			return 0, beta
 		}
 	}
+
+	originalAlpha := alpha
+	bestScore := -board.LIMIT_SCORE
+	bestMove := 0
 
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
@@ -116,11 +88,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	legalMoves := 0
 
 	for moveCount, move := range moves.Moves {
-		board.REPETITION_INDEX++
-		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
-
 		if !board.MakeMove(move, board.ALL_MOVES) {
-			board.REPETITION_INDEX--
 			continue
 		}
 		legalMoves++
@@ -141,34 +109,26 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		_, score := alphaBeta(-beta, -alpha, depth-1-reduction)
 		score *= -1
 
-		board.REPETITION_INDEX--
-
 		board.RestoreState()
 
-		if score > alpha {
+		if score > bestScore {
 			bestScore = score
 			bestMove = move
+		}
 
+		if bestScore > alpha {
+			alpha = bestScore
+		}
+
+		if alpha >= beta {
 			if board.GetCapture(move) == 0 {
-				historyHeuristic[board.GetPiece(move)][board.GetTarget(move)] += depth
+				historyHeuristic[board.GetPiece(move)][board.GetTarget(move)] += depth * depth
 			}
 
-			alpha = score
+			killerHeuristic[depth][1] = killerHeuristic[depth][0]
+			killerHeuristic[depth][0] = move
 
-			if score >= beta {
-				// store cutoff in tt
-				board.AddTTEntry(bestMove, beta, depth, board.CutNode)
-
-				// killer heuristic
-				if board.GetCapture(move) == 0 {
-					killerHeuristic[depth][1] = killerHeuristic[depth][0]
-					killerHeuristic[depth][0] = move
-				}
-
-				// fail high
-				return move, beta
-			}
-
+			break
 		}
 	}
 

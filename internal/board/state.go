@@ -11,7 +11,6 @@ type State struct {
 	Side        int
 	EnPassant   int
 	Castle      int
-	Fifty       int
 	ZobristHash uint64
 }
 
@@ -22,7 +21,6 @@ func SaveState() {
 		Side,
 		EnPassant,
 		Castle,
-		Fifty,
 		ZobristHash,
 	}
 
@@ -37,7 +35,6 @@ func RestoreState() {
 	Side = state.Side
 	EnPassant = state.EnPassant
 	Castle = state.Castle
-	Fifty = state.Fifty
 	ZobristHash = state.ZobristHash
 
 	StateSize--

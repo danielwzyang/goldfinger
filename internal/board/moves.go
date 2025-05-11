@@ -92,17 +92,7 @@ func MakeMove(move int, flag int) bool {
 		ZobristHash ^= PIECE_HASH[piece][source] // remove piece from source square
 		ZobristHash ^= PIECE_HASH[piece][target] // set piece to target square
 
-		Fifty++
-
-		// reset 50 move draw
-		if piece == WHITE_PAWN || piece == BLACK_PAWN {
-			Fifty = 0
-		}
-
 		if capture {
-			// reset 50 move draw
-			Fifty = 0
-
 			// set piece range to see which piece is being captured
 			var start, end int
 			if Side == WHITE {
