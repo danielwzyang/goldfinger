@@ -1,10 +1,11 @@
-# Chess Engine
+# Goldfinger
+
+https://www.chess.com/member/goldfinger-1964
 
 ## Current Functionalities
 - FEN Processing
 - Pseudo Legal Move Generation with Magic Bitboards
 - Alpha-Beta Pruning with the Negamax framework
-- Iterative Deepening
 - Late Move Reduction
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic

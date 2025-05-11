@@ -11,7 +11,11 @@ func randomMove() int {
 	board.GenerateAllMoves(&moves)
 
 	move := moves.Moves[rand.Intn(moves.Count)]
-	board.MakeMove(move, board.ALL_MOVES)
+	for !board.MakeMove(move, board.ALL_MOVES) {
+		move = moves.Moves[rand.Intn(moves.Count)]
+	}
+
+	board.RestoreState()
 
 	return move
 }

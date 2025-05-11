@@ -12,6 +12,7 @@ type State struct {
 	EnPassant   int
 	Castle      int
 	ZobristHash uint64
+	Fifty       int
 }
 
 func SaveState() {
@@ -22,6 +23,7 @@ func SaveState() {
 		EnPassant,
 		Castle,
 		ZobristHash,
+		Fifty,
 	}
 
 	StateSize++
@@ -36,6 +38,7 @@ func RestoreState() {
 	EnPassant = state.EnPassant
 	Castle = state.Castle
 	ZobristHash = state.ZobristHash
+	Fifty = state.Fifty
 
 	StateSize--
 }

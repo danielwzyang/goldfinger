@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	killerHeuristic  = [64][2]int{}  // [depth][order]
-	historyHeuristic = [12][64]int{} // [piece][square]
+	killerHeuristic  = [2][64][2]int{}  // [side][depth][order] (side so no conflict when playing self)
+	historyHeuristic = [2][12][64]int{} // [side][piece][square]
 	MVV_LVA          = [12][12]int{
 		{105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605},
 		{104, 204, 304, 404, 504, 604, 104, 204, 304, 404, 504, 604},
@@ -47,14 +47,14 @@ func scoreMove(move int, depth int) int {
 		score += getMVVLVA(move)
 	}
 
-	if killerHeuristic[depth][0] == move {
+	if killerHeuristic[board.Side][depth][0] == move {
 		score += 9000
 	}
-	if killerHeuristic[depth][1] == move {
+	if killerHeuristic[board.Side][depth][1] == move {
 		score += 8000
 	}
 
-	score += historyHeuristic[board.GetPiece(move)][board.GetTarget(move)]
+	score += historyHeuristic[board.Side][board.GetPiece(move)][board.GetTarget(move)]
 
 	return score
 }

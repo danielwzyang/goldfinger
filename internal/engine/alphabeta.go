@@ -12,6 +12,10 @@ func alphaBetaWrapper() int {
 }
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
+	if board.Fifty >= 100 {
+		return 0, 0
+	}
+
 	// pv node
 	pv := beta-alpha > 1
 
@@ -87,7 +91,9 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	sortMoves(&moves, scores)
 	legalMoves := 0
 
-	for moveCount, move := range moves.Moves {
+	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		move := moves.Moves[moveCount]
+
 		if !board.MakeMove(move, board.ALL_MOVES) {
 			continue
 		}
@@ -122,11 +128,11 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		if alpha >= beta {
 			if board.GetCapture(move) == 0 {
-				historyHeuristic[board.GetPiece(move)][board.GetTarget(move)] += depth * depth
+				historyHeuristic[board.Side][board.GetPiece(move)][board.GetTarget(move)] += depth * depth
 			}
 
-			killerHeuristic[depth][1] = killerHeuristic[depth][0]
-			killerHeuristic[depth][0] = move
+			killerHeuristic[board.Side][depth][1] = killerHeuristic[board.Side][depth][0]
+			killerHeuristic[board.Side][depth][0] = move
 
 			break
 		}

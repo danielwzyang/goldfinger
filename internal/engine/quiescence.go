@@ -28,7 +28,9 @@ func quiesce(alpha, beta int) int {
 
 	delta := DELTA_MARGIN
 
-	for _, move := range moves.Moves {
+	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		move := moves.Moves[moveCount]
+
 		mvvlva := getMVVLVA(move)
 		if mvvlva < 0 {
 			break

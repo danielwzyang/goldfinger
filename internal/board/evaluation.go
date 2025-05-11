@@ -210,6 +210,8 @@ func Evaluate() int {
 
 	score := (mgScore*midgamePhase + egScore*endgamePhase) / 24
 
+	score = (score * (100 - Fifty) / 100)
+
 	if Side == WHITE {
 		return score
 	}

@@ -26,6 +26,7 @@ var (
 
 	EnPassant = INVALID_SQUARE
 	Side      = WHITE
+	Fifty     = 0
 )
 
 func Init() {
