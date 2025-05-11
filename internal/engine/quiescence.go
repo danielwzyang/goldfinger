@@ -38,17 +38,11 @@ func quiesce(alpha, beta int) int {
 			continue
 		}
 
-		board.REPETITION_INDEX++
-		board.REPETITION_TABLE[board.REPETITION_INDEX] = board.ZobristHash
-
 		if !board.MakeMove(move, board.ONLY_CAPTURES) {
-			board.REPETITION_INDEX--
 			continue
 		}
 
 		score := -quiesce(-beta, -alpha)
-
-		board.REPETITION_INDEX--
 
 		board.RestoreState()
 

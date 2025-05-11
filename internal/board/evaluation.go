@@ -170,10 +170,6 @@ func InitEvalTables() {
 }
 
 func Evaluate() int {
-	if Fifty >= 100 {
-		return 0
-	}
-
 	gamePhase := 0
 
 	mgScore := 0
