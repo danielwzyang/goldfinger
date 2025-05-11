@@ -1,6 +1,6 @@
 # Goldfinger
 
-Based on games played against Komodo, this engine is probably rated around 1600.
+Based on games played against Komodo, this engine is probably rated around 1600-1700 given a search depth of 8-9 plies.
 
 https://www.chess.com/member/goldfinger-1964
 
@@ -36,4 +36,4 @@ https://www.chess.com/member/goldfinger-1964
 |14|Komodo13 (1700)|Loss|77.7%|8|1800|
 |15|Komodo13 (1700)|Loss|70.8%|8|1350|
 |16|Komodo13 (1700)|Loss|74.0%|8|1550|
-|17|Komodo13 (1700)|Draw|75.7%|8|1600|
+|17|Komodo13 (1700)|Draw|75.7%|9|1600|
