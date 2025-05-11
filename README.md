@@ -18,8 +18,6 @@ https://www.chess.com/member/goldfinger-1964
 
 ## Games Against Komodo Engine
 
-## Games Against Komodo Engine
-
 |Game #|Opponent|Result|Accuracy|Depth|Estimated ELO|
 |-|-|-|-|-|-|
 |1|Komodo1 (250)|Win|88.8%|6|1600|
