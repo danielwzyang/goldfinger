@@ -142,7 +142,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	if legalMoves == 0 {
 		// checkmate
 		if inCheck {
-			return 0, -board.MATE + depth
+			return 0, -board.MATE - depth
 		}
 		// stalemate
 		return 0, 0
