@@ -14,7 +14,7 @@ https://www.chess.com/member/goldfinger-1964
 - PeSTO Evaluation
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
-
+- Perft Test
 
 ## Games Against Komodo Engine
 

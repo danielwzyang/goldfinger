@@ -107,4 +107,6 @@ func ParseFEN(fen string) {
 		Bitboards[BLACK_KING]
 
 	Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
+
+	Fifty = 0
 }
