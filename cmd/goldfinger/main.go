@@ -18,7 +18,7 @@ func main() {
 	board.Print(0)
 
 	engine.Init(engine.Options{
-		SearchDepth: 9,
+		SearchDepth: 10,
 		Type:        'n',
 	})
 

@@ -218,6 +218,10 @@ func MakeMove(move int, flag int) bool {
 		// hash side
 		ZobristHash ^= SIDE_HASH
 
+		// store current position in repetition table
+		RepetitionTable[RepetitionIndex] = ZobristHash
+		RepetitionIndex++
+
 		// to prevent pseudo legal moves from being made (i.e. still in check)
 		var king int
 		if Side == WHITE {
@@ -252,6 +256,10 @@ func MakeNullMove() {
 
 	Side ^= 1
 	ZobristHash ^= SIDE_HASH
+
+	// store current position in repetition table
+	RepetitionTable[RepetitionIndex] = ZobristHash
+	RepetitionIndex++
 }
 
 func StringToPos(input string) int {
