@@ -76,8 +76,8 @@ func MakeMove(move int, flag int) bool {
 		SaveState()
 
 		// store current position in repetition table
-		RepetitionTable[RepetitionIndex] = ZobristHash
 		RepetitionIndex++
+		RepetitionTable[RepetitionIndex] = ZobristHash
 
 		source := GetSource(move)
 		target := GetTarget(move)
@@ -250,8 +250,8 @@ func MakeNullMove() {
 	SaveState()
 
 	// store current position in repetition table
-	RepetitionTable[RepetitionIndex] = ZobristHash
 	RepetitionIndex++
+	RepetitionTable[RepetitionIndex] = ZobristHash
 
 	if EnPassant != INVALID_SQUARE {
 		ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
