@@ -75,6 +75,10 @@ func MakeMove(move int, flag int) bool {
 	if flag == ALL_MOVES {
 		SaveState()
 
+		// store current position in repetition table
+		RepetitionTable[RepetitionIndex] = ZobristHash
+		RepetitionIndex++
+
 		source := GetSource(move)
 		target := GetTarget(move)
 		piece := GetPiece(move)
@@ -218,10 +222,6 @@ func MakeMove(move int, flag int) bool {
 		// hash side
 		ZobristHash ^= SIDE_HASH
 
-		// store current position in repetition table
-		RepetitionTable[RepetitionIndex] = ZobristHash
-		RepetitionIndex++
-
 		// to prevent pseudo legal moves from being made (i.e. still in check)
 		var king int
 		if Side == WHITE {
@@ -249,6 +249,10 @@ func MakeMove(move int, flag int) bool {
 func MakeNullMove() {
 	SaveState()
 
+	// store current position in repetition table
+	RepetitionTable[RepetitionIndex] = ZobristHash
+	RepetitionIndex++
+
 	if EnPassant != INVALID_SQUARE {
 		ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
 	}
@@ -256,10 +260,6 @@ func MakeNullMove() {
 
 	Side ^= 1
 	ZobristHash ^= SIDE_HASH
-
-	// store current position in repetition table
-	RepetitionTable[RepetitionIndex] = ZobristHash
-	RepetitionIndex++
 }
 
 func StringToPos(input string) int {

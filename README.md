@@ -18,8 +18,8 @@ https://www.chess.com/member/goldfinger-1964
 
 ## Games Against Komodo Engine
 
-|Game #|Opponent|Result|Accuracy|Depth|Estimated ELO|
-|-|-|-|-|-|-|
+|Game #|Opponent|Result|Accuracy|Depth|Estimated ELO|Notes|
+|-|-|-|-|-|-|-|
 |1|Komodo1 (250)|Win|88.8%|6|1600|
 |2|Komodo2 (400)|Win|77.9%|6|1400|
 |3|Komodo3 (550)|Win|87.0%|6|1700|
@@ -37,3 +37,4 @@ https://www.chess.com/member/goldfinger-1964
 |15|Komodo13 (1700)|Loss|70.8%|8|1350|
 |16|Komodo13 (1700)|Loss|74.0%|8|1550|
 |17|Komodo13 (1700)|Draw by repetition|75.7%|9|1600|
+|18|Komodo13 (1700)|Win|68.8%|9|1250|testing changes; bad performance
