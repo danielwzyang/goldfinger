@@ -39,3 +39,5 @@ https://www.chess.com/member/goldfinger-1964
 |17|Komodo13 (1700)|Draw by repetition|75.7%|9|1600|
 |18|Komodo13 (1700)|Win|68.8%|9|1250|testing changes; bad performance
 |19|Komodo13 (1700)|Win|83.6%|9|2050|
+|20|Komodo14 (1800)|Win|76.5%|9|1700|
+|21|Komodo15 (1900)|Win|69.4%|9|1100|
