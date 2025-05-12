@@ -28,6 +28,11 @@ func main() {
 
 	var input string
 	for {
+		if board.Fifty >= 100 {
+			fmt.Println("Draw by fifty move rule!")
+			break
+		}
+
 		if over() {
 			fmt.Println("No more legal moves!")
 			break
