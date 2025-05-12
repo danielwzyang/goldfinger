@@ -17,7 +17,7 @@ func main() {
 	board.Print(0)
 
 	engine.Init(engine.Options{
-		SearchDepth: 6,
+		SearchDepth: 8,
 		Type:        'n',
 	})
 
@@ -57,6 +57,8 @@ func main() {
 		fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms)\n", ms, engineTime/engineMoves, maxTime)
 		fmt.Println()
 	}
+
+	fmt.Printf("Finished in %d moves.", engineMoves)
 }
 
 func over() bool {
