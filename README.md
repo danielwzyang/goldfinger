@@ -7,6 +7,7 @@ https://www.chess.com/member/goldfinger-1964
 ## Current Functionalities
 - FEN Processing
 - Pseudo Legal Move Generation with Magic Bitboards
+- Iterative Deepening with Aspiration Windows
 - Alpha-Beta Pruning with the Negamax framework
 - Late Move Reduction
 - Null Move Pruning
@@ -15,6 +16,7 @@ https://www.chess.com/member/goldfinger-1964
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
+- Repetition Detection
 
 ## Games Against Komodo Engine
 
