@@ -54,7 +54,7 @@ func main() {
 		engineTime += ms
 		maxTime = max(ms, maxTime)
 
-		fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms)\n", ms, engineTime/engineMoves, maxTime)
+		fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms | Total: %dms)\n", ms, engineTime/engineMoves, maxTime, engineTime)
 		fmt.Println()
 	}
 
