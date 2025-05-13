@@ -13,11 +13,12 @@ func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
 	depth := flag.Int("depth", 8, "Starting search depth (recommended 7-9, lower or increase according to required performance)")
-	playerSide := flag.Int("side", 8, "Side that the player plays (0 for white, 1 for black)")
+	playBlack := flag.Bool("black", false, "Player plays black")
 	flag.Parse()
 
-	if *playerSide != 0 && *playerSide != 1 {
-		panic("Please input 0 or 1 for the side flag.")
+	playerSide := board.WHITE
+	if *playBlack {
+		playerSide = board.BLACK
 	}
 
 	// init
@@ -51,7 +52,7 @@ func main() {
 			break
 		}
 
-		if board.Side == *playerSide {
+		if board.Side == playerSide {
 			// player's turn
 
 			possibleMoves := board.MoveList{}

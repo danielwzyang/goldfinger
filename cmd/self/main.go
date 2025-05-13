@@ -65,7 +65,7 @@ func main() {
 		fmt.Println()
 	}
 
-	fmt.Printf("Finished in %d moves.", engineMoves)
+	fmt.Printf("Finished in %d plies.", engineMoves)
 }
 
 func over() bool {
