@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"danielyang.cc/chess/internal/board"
@@ -8,22 +9,28 @@ import (
 )
 
 func main() {
-	fmt.Println("──────────────────────────────────────────────────────")
-	fmt.Println("Goldfinger | danielyang.cc")
-	fmt.Println("──────────────────────────────────────────────────────")
+	// grab flags
+	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
+	depth := flag.Int("depth", 8, "Starting search depth (recommended 6-8, lower or increase according to required performance)")
+	flag.Parse()
 
-	board.ParseFEN(board.DEFAULT_BOARD)
+	// init
+	board.ParseFEN(*fen)
 	board.Init()
-	board.Print(0)
 
 	engine.Init(engine.Options{
-		SearchDepth: 8,
-		Type:        'n',
+		SearchDepth: *depth,
 	})
 
 	engineMoves := 0
 	engineTime := 0
 	maxTime := 0
+
+	fmt.Println("──────────────────────────────────────────────────────")
+	fmt.Println("Goldfinger | danielyang.cc")
+	fmt.Println("──────────────────────────────────────────────────────")
+
+	board.Print(0)
 
 	for {
 		if board.Fifty >= 100 {

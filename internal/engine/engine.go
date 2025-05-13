@@ -4,34 +4,20 @@ import "time"
 
 type Options struct {
 	SearchDepth int
-	Type        byte
 }
 
 var (
 	searchDepth int
-	t           byte
 )
 
 func Init(options Options) {
 	searchDepth = options.SearchDepth
-
-	t = options.Type
-	if t != 'r' && t != 'n' {
-		panic("Input r or n as an engine type.")
-	}
 }
 
 func FindMove() (int, int) {
 	start := time.Now()
 
-	switch t {
-	case 'r':
-		return randomMove(), timeSince(start)
-	case 'n':
-		return iterativeDeepening(), timeSince(start)
-	}
-
-	return 0, 0
+	return iterativeDeepening(), timeSince(start)
 }
 
 func timeSince(start time.Time) int {

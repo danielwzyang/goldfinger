@@ -272,21 +272,27 @@ func MoveToString(move int) string {
 	return POSITIONTOSTRING[GetSource(move)] + POSITIONTOSTRING[GetTarget(move)]
 }
 
-// assumes player is always white
-func StringToWhiteMove(input string) int {
+func StringToMove(input string) int {
 	source := StringToPos(input[:2])
 	target := StringToPos(input[2:4])
 
-	// finding piece
 	piece := 0
-	for i := WHITE_PAWN; i <= WHITE_KING; i++ {
+	start := WHITE_PAWN
+	end := WHITE_KING
+	if Side == BLACK {
+		start = BLACK_PAWN
+		end = BLACK_KING
+	}
+
+	// find piece that's moving
+	for i := start; i <= end; i++ {
 		if GetBit(Bitboards[i], source) > 0 {
 			piece = i
 			break
 		}
 	}
 
-	// pawn promotion
+	// promotion
 	promotion := 0
 	if len(input) == 5 {
 		switch input[4] {
@@ -299,35 +305,38 @@ func StringToWhiteMove(input string) int {
 		case 'q':
 			promotion = WHITE_QUEEN
 		}
+		if Side == BLACK {
+			promotion += 6
+		}
 	}
 
-	// double push
+	// double pawn push
 	double := 0
-	if piece == WHITE_PAWN && target-source == 16 {
+	if Side == WHITE && piece == WHITE_PAWN && target-source == 16 {
+		double = 1
+	} else if Side == BLACK && piece == BLACK_PAWN && source-target == 16 {
 		double = 1
 	}
 
-	// finding capture and enpass
+	// capture + en passant
 	capture := 0
 	enpass := 0
-
 	if target == EnPassant {
 		capture = 1
 		enpass = 1
-	} else if GetBit(Occupancies[BLACK], target) > 0 {
+	} else if GetBit(Occupancies[Side^1], target) > 0 {
 		capture = 1
 	}
 
 	// castling
 	castle := 0
-	if piece == WHITE_KING {
-		// white kingside castle
-		if source == E1 && target == G1 {
+	if Side == WHITE && piece == WHITE_KING {
+		if source == E1 && (target == G1 || target == C1) {
 			castle = 1
 		}
-
-		// white queenside castle
-		if source == E1 && target == C1 {
+	}
+	if Side == BLACK && piece == BLACK_KING {
+		if source == E8 && (target == G8 || target == C8) {
 			castle = 1
 		}
 	}

@@ -109,4 +109,5 @@ func ParseFEN(fen string) {
 	Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
 
 	Fifty = 0
+	RepetitionIndex = 0
 }
