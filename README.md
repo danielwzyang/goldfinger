@@ -20,6 +20,12 @@ https://www.chess.com/member/goldfinger-1964
 - Perft Test
 - Repetition Detection
 
+## Possible Improvements
+- Opening / Ending Books
+- NNUE Evaluation
+- Material Draw
+- More Pruning / Reduction Strategies e.g. Recursive Static Exchange Evaluation
+
 ## Games Against Komodo Engine
 
 |Game #|Opponent|Result|Accuracy|Depth|Estimated ELO|Notes|
