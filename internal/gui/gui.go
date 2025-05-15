@@ -131,7 +131,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				text.Draw(screen, rankLabel, basicfont.Face7x13, x, y, color.Black)
 			}
 			if rank == 7 {
-				fileLabel := string('a' + rune(file))
+				fileLabel := string('a' + rune(file-1))
 				x := file*squareSize - 8
 				y := (rank+1)*squareSize - 3
 				text.Draw(screen, fileLabel, basicfont.Face7x13, x, y, color.Black)
