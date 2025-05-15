@@ -6,6 +6,8 @@ https://www.chess.com/member/goldfinger-1964
 
 ## Current Functionalities
 - FEN Processing
+- GUI for Board Representation
+- Input Moves using Long Algebraic Notation
 - Pseudo Legal Move Generation with Magic Bitboards
 - Iterative Deepening with Aspiration Windows
 - Alpha-Beta Pruning with the Negamax framework
