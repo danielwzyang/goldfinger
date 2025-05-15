@@ -321,7 +321,7 @@ func StringToMove(input string) int {
 	// capture + en passant
 	capture := 0
 	enpass := 0
-	if target == EnPassant {
+	if target == EnPassant && (piece == WHITE_PAWN || piece == BLACK_PAWN) {
 		capture = 1
 		enpass = 1
 	} else if GetBit(Occupancies[Side^1], target) > 0 {
