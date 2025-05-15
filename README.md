@@ -54,3 +54,5 @@ https://www.chess.com/member/goldfinger-1964
 |22|Komodo14 (1800)|Loss|61.4%|8|1050|worst endgame by far (45.7%); not really sure what happened
 |23|Komodo13 (1700)|Loss|51.5%|8|950|very bad game + first game on white; removing iterative deepening after this
 |24|Komodo13 (1700)|Loss|63.8%|8|1100|bad game, also on white; no iterative deepening
+|25|Komodo13 (1700)|Win|81.5%|8|1950|after figuring out major flaw in evaluation; readded iterative deepening
+|26|Komodo14 (1800)|Win|88.5%|9|2300|longest thinking time of every game so far: (Avg: 6311ms | Max: 117253ms | Total: 258775ms) 
