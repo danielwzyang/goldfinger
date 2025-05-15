@@ -21,7 +21,26 @@ func Init(options Options) {
 func FindMove() (int, int) {
 	start := time.Now()
 
-	move, _ := alphaBeta(-board.LIMIT_SCORE, board.LIMIT_SCORE, searchDepth)
+	alpha := -board.LIMIT_SCORE
+	beta := board.LIMIT_SCORE
+
+	move := 0
+	score := 0
+
+	for depth := 1; depth <= searchDepth; depth++ {
+		move, score = alphaBeta(alpha, beta, depth)
+
+		// out of window
+		if score <= alpha || score >= beta {
+			alpha = -board.LIMIT_SCORE
+			beta = board.LIMIT_SCORE
+			continue
+		}
+
+		// narrow down window by 50 centipawns
+		alpha = score - 50
+		beta = score + 50
+	}
 
 	return move, timeSince(start)
 }
