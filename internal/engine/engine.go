@@ -1,6 +1,10 @@
 package engine
 
-import "time"
+import (
+	"time"
+
+	"danielyang.cc/chess/internal/board"
+)
 
 type Options struct {
 	SearchDepth int
@@ -17,7 +21,9 @@ func Init(options Options) {
 func FindMove() (int, int) {
 	start := time.Now()
 
-	return iterativeDeepening(), timeSince(start)
+	move, _ := alphaBeta(-board.LIMIT_SCORE, board.LIMIT_SCORE, searchDepth)
+
+	return move, timeSince(start)
 }
 
 func timeSince(start time.Time) int {

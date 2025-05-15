@@ -50,5 +50,7 @@ https://www.chess.com/member/goldfinger-1964
 |18|Komodo13 (1700)|Win|68.8%|9|1250|testing changes; bad performance
 |19|Komodo13 (1700)|Win|83.6%|9|2050|
 |20|Komodo14 (1800)|Win|76.5%|9|1700|
-|21|Komodo15 (1900)|Win|69.4%|9|1100|
-|22|Komodo14 (1800)|Win|61.4%|8|1050|worst endgame by far (45.7%); not really sure what happened
+|21|Komodo15 (1900)|Loss|69.4%|9|1100|
+|22|Komodo14 (1800)|Loss|61.4%|8|1050|worst endgame by far (45.7%); not really sure what happened
+|23|Komodo13 (1700)|Loss|51.5%|8|950|very bad game + first game on white; removing iterative deepening after this
+|24|Komodo13 (1700)|Loss|63.8%|8|1100|bad game, also on white; no iterative deepening

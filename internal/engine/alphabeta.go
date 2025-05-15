@@ -6,31 +6,6 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-func iterativeDeepening() int {
-	alpha := -board.LIMIT_SCORE
-	beta := board.LIMIT_SCORE
-
-	move := 0
-	score := 0
-
-	for depth := 1; depth <= searchDepth; depth++ {
-		move, score = alphaBeta(alpha, beta, depth)
-
-		// out of window
-		if score <= alpha || score >= beta {
-			alpha = -board.LIMIT_SCORE
-			beta = board.LIMIT_SCORE
-			continue
-		}
-
-		// narrow down window by 50 centipawns
-		alpha = score - 50
-		beta = score + 50
-	}
-
-	return move
-}
-
 func alphaBeta(alpha, beta, depth int) (int, int) {
 	if depth != searchDepth && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
