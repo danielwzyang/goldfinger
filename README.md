@@ -51,3 +51,4 @@ https://www.chess.com/member/goldfinger-1964
 |19|Komodo13 (1700)|Win|83.6%|9|2050|
 |20|Komodo14 (1800)|Win|76.5%|9|1700|
 |21|Komodo15 (1900)|Win|69.4%|9|1100|
+|22|Komodo14 (1800)|Win|61.4%|8|1050|worst endgame by far (45.7%); not really sure what happened
