@@ -6,6 +6,7 @@ import (
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
+	"danielyang.cc/chess/internal/gui"
 )
 
 func main() {
@@ -30,8 +31,11 @@ func main() {
 	fmt.Println("Goldfinger | danielyang.cc")
 	fmt.Println("──────────────────────────────────────────────────────")
 
-	board.Print(0)
+	// start gui
+	gui.NewGame()
+	go gui.Run()
 
+	// game loop
 	for {
 		if board.Fifty >= 100 {
 			fmt.Println("Draw by fifty move rule!")
@@ -51,8 +55,8 @@ func main() {
 		}
 
 		board.MakeMove(move, board.ALL_MOVES)
+		gui.UpdateBoard(move)
 
-		board.Print(move)
 		fmt.Println("The engine played:")
 		board.PrintMove(move)
 		fmt.Println()
@@ -66,6 +70,8 @@ func main() {
 	}
 
 	fmt.Printf("Finished in %d plies.", engineMoves)
+
+	fmt.Scanln() // just to keep window running
 }
 
 func over() bool {

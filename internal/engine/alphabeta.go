@@ -13,7 +13,7 @@ func iterativeDeepening() int {
 	move := 0
 	score := 0
 
-	for depth := 1; depth < searchDepth; depth++ {
+	for depth := 1; depth <= searchDepth; depth++ {
 		move, score = alphaBeta(alpha, beta, depth)
 
 		// out of window

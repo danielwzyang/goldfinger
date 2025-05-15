@@ -7,12 +7,13 @@ import (
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
+	"danielyang.cc/chess/internal/gui"
 )
 
 func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
-	depth := flag.Int("depth", 8, "Starting search depth (recommended 7-9, lower or increase according to required performance)")
+	depth := flag.Int("depth", 6, "Starting search depth (recommended 6-8, lower or increase according to required performance)")
 	playBlack := flag.Bool("black", false, "Player plays black")
 	flag.Parse()
 
@@ -33,12 +34,14 @@ func main() {
 	engineTime := 0
 	maxTime := 0
 
+	// start gui
+	gui.NewGame()
+	go gui.Run()
+
 	// game loop
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Goldfinger | danielyang.cc")
 	fmt.Println("──────────────────────────────────────────────────────")
-
-	board.Print(0)
 
 	var input string
 	for {
@@ -84,7 +87,8 @@ func main() {
 					continue
 				}
 
-				board.Print(move)
+				gui.UpdateBoard(move)
+
 				fmt.Println("You played:")
 				board.PrintMove(move)
 				break
@@ -100,8 +104,8 @@ func main() {
 			}
 
 			board.MakeMove(move, board.ALL_MOVES)
+			gui.UpdateBoard(move)
 
-			board.Print(move)
 			fmt.Println("The engine played:")
 			board.PrintMove(move)
 			fmt.Println()
@@ -115,6 +119,8 @@ func main() {
 
 		fmt.Println()
 	}
+
+	fmt.Scanln() // just to keep window running
 }
 
 var regex = regexp.MustCompile("^[a-h][1-8][a-h][1-8][qrnb]?$")

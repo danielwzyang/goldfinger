@@ -1,7 +1,5 @@
 package board
 
-import "fmt"
-
 var (
 	Bitboards [12]uint64
 
@@ -38,65 +36,4 @@ func Init() {
 	InitEvalTables()
 
 	InitZobristTables()
-}
-
-func Print(lastMove int) {
-	source := GetSource(lastMove)
-	target := GetTarget(lastMove)
-
-	if lastMove == 0 {
-		source = -1
-		target = -1
-	}
-
-	green := "\033[42m"
-	gray := "\033[2;37m"
-	reset := "\033[0m"
-
-	// top border
-	fmt.Printf("%s   ┌──┬──┬──┬──┬──┬──┬──┬──┐%s\n", gray, reset)
-
-	for rank := 7; rank >= 0; rank-- {
-		// numbers on side
-		fmt.Printf(" %d %s│%s", rank+1, gray, reset)
-
-		for file := 0; file < 8; file++ {
-			square := rank*8 + file
-			occupied := false
-
-			for piece, bitboard := range Bitboards {
-				if GetBit(bitboard, square) == 1 {
-					if square == target {
-						fmt.Printf("%s%s\ufe0e %s%s│%s", green, ascii[piece+1], reset, gray, reset)
-					} else {
-						fmt.Printf("%s\ufe0e %s│%s", ascii[piece+1], gray, reset)
-					}
-
-					occupied = true
-					break
-				}
-			}
-
-			if !occupied {
-				if square == source {
-					fmt.Printf("%s%s\ufe0e %s%s│%s", green, ascii[0], reset, gray, reset)
-				} else {
-					fmt.Printf("%s\ufe0e %s│%s", ascii[0], gray, reset)
-				}
-			}
-		}
-
-		fmt.Println()
-
-		// middle borders or bottom border
-		if rank > 0 {
-			fmt.Printf("%s   ├──┼──┼──┼──┼──┼──┼──┼──┤%s\n", gray, reset)
-		} else {
-			fmt.Printf("%s   └──┴──┴──┴──┴──┴──┴──┴──┘%s\n", gray, reset)
-		}
-	}
-
-	// letters on bottom
-	fmt.Println("    a  b  c  d  e  f  g  h")
-	fmt.Println()
 }
