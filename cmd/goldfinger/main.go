@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"time"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
@@ -120,7 +121,11 @@ func main() {
 		fmt.Println()
 	}
 
-	fmt.Scanln() // just to keep window running
+	fmt.Println()
+	fmt.Println("Stopping in 10 seconds..")
+	start := time.Now()
+	for time.Since(start).Seconds() < 10 {
+	}
 }
 
 var regex = regexp.MustCompile("^[a-h][1-8][a-h][1-8][qrnb]?$")

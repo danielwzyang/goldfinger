@@ -350,9 +350,9 @@ func PrintMove(move int) {
 	piece := ascii[GetPiece(move)+1]
 	promotion := min(1, GetPromotion(move))
 	capture := min(1, GetCapture(move))
+	double := min(1, GetDouble(move))
 	enpassant := min(1, GetEnPassant(move))
 	castling := min(1, GetCastling(move))
-	double := min(1, GetDouble(move))
 
-	fmt.Printf("%s%s, %s, promotion: %d, capture: %d, enpassant: %d, castling: %d, double: %d\n", source, target, piece, promotion, capture, enpassant, castling, double)
+	fmt.Printf("%s%s, %s, promotion: %d, capture: %d, double: %d, enpassant: %d, castling: %d\n", source, target, piece, promotion, capture, double, enpassant, castling)
 }

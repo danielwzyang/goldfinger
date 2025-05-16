@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
@@ -69,9 +70,14 @@ func main() {
 		fmt.Println()
 	}
 
-	fmt.Printf("Finished in %d plies.", engineMoves)
+	fmt.Println()
+	fmt.Printf("Finished in %d plies.\n", engineMoves)
 
-	fmt.Scanln() // just to keep window running
+	fmt.Println()
+	fmt.Println("Stopping in 10 seconds..")
+	start := time.Now()
+	for time.Since(start).Seconds() < 10 {
+	}
 }
 
 func over() bool {

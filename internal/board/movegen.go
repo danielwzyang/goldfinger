@@ -148,19 +148,20 @@ func GenerateCastleMoves(moves *MoveList) {
 			!IsSquareAttacked(E1, BLACK) && !IsSquareAttacked(D1, BLACK) { // king and d1 aren't in check
 			moves.AddMove(EncodeMove(E1, C1, WHITE_KING, 0, 0, 0, 0, 1))
 		}
+
 		return
 	}
 
 	// black castling
 	if Castle&BK != 0 && // can castle
 		GetBit(Occupancies[BOTH], F8) == 0 && GetBit(Occupancies[BOTH], G8) == 0 && // squares are empty
-		!IsSquareAttacked(E8, BLACK) && !IsSquareAttacked(F8, BLACK) { // king and f8 aren't in check
+		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(F8, WHITE) { // king and f8 aren't in check
 		moves.AddMove(EncodeMove(E8, G8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 
 	if Castle&BQ != 0 && // can castle
 		GetBit(Occupancies[BOTH], D8) == 0 && GetBit(Occupancies[BOTH], C8) == 0 && GetBit(Occupancies[BOTH], B8) == 0 && // squares are empty
-		!IsSquareAttacked(E8, BLACK) && !IsSquareAttacked(D8, BLACK) { // king and d8 aren't in check
+		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(D8, WHITE) { // king and d8 aren't in check
 		moves.AddMove(EncodeMove(E8, C8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 }

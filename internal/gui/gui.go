@@ -26,8 +26,8 @@ var (
 
 	lightSquare     = color.RGBA{235, 236, 208, 255}
 	darkSquare      = color.RGBA{119, 149, 86, 255}
-	highlightSource = color.RGBA{227, 102, 79, 255}
-	highlightTarget = color.RGBA{181, 69, 49, 255}
+	highlightSource = color.RGBA{219, 203, 107, 255}
+	highlightTarget = color.RGBA{219, 187, 112, 255}
 
 	images = [12]string{
 		"assets/white_pawn.png",
@@ -124,17 +124,24 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 			screen.SubImage(image.Rect(file*squareSize, rank*squareSize, (file+1)*squareSize, (rank+1)*squareSize)).(*ebiten.Image).Fill(squareColor)
 
+			// file and rank labels
+			var textColor color.RGBA
+			if light {
+				textColor = darkSquare
+			} else {
+				textColor = lightSquare
+			}
 			if file == 0 {
 				rankLabel := string('1' + rune(7-rank))
 				x := 5
 				y := rank*squareSize + 13
-				text.Draw(screen, rankLabel, basicfont.Face7x13, x, y, color.Black)
+				text.Draw(screen, rankLabel, basicfont.Face7x13, x, y, textColor)
 			}
 			if rank == 7 {
-				fileLabel := string('a' + rune(file-1))
-				x := file*squareSize - 8
+				fileLabel := string('a' + rune(file))
+				x := (file+1)*squareSize - 10
 				y := (rank+1)*squareSize - 3
-				text.Draw(screen, fileLabel, basicfont.Face7x13, x, y, color.Black)
+				text.Draw(screen, fileLabel, basicfont.Face7x13, x, y, textColor)
 			}
 
 		}
