@@ -18,13 +18,31 @@ https://www.chess.com/member/goldfinger-1964
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
-- Repetition Detection
+- Repetition Table (disregards 3 in a row rule; just ignores the first repetition)
+- Fifty Move Rule Detection
 
 ## Possible Improvements
+- UCI Support / Link with Lichess API
 - Opening / Ending Books
 - NNUE Evaluation
 - Material Draw
 - More Pruning / Reduction Strategies e.g. Recursive Static Exchange Evaluation
+
+## Usage
+
+Ensure Go is installed in the latest release.
+
+To play against then engine, run cmd/goldfinger/main.go using the following optional flags to customize behavior/performance:
+
+|Flag|Description|Default|Usage|
+|-|-|-|-|
+|fen|board position|starting position|-fen="rnbqkbnr/pp..."
+|depth|search depth|6|-depth=8|
+|black|if included input controls black|no flag = input controls white|-black|
+
+Input moves using long algebraic notation.
+
+To watch the engine play against itself, simply run cmd/self/main.go and use any of the optional flags, disregarding -black. 
 
 ## Games Against Komodo Engine
 
