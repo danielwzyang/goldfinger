@@ -77,3 +77,5 @@ To watch the engine play against itself, simply run cmd/self/main.go and use any
 |27|Komodo14 (1800)|Win|88.5%|9|2300|not sure what happened; seems to be the exact same game as 26
 |28|Komodo16 (2000)|Loss|77.5%|9|1800|blundered one move and lost to forced mate
 |29|Komodo16 (2000)|Win|86.0%|9|2300|another brilliant move, only 187266ms total thinking time (3285ms average)
+|30|Komodo16 (2000)|Loss|61.7%|9|800|bad game
+|31|Komodo16 (2000)|Loss|71.4%|9|900|pretty bad blunders
