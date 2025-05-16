@@ -1,6 +1,6 @@
 # Goldfinger
 
-Based on games played against Komodo, this engine is probably rated around 1900-2000 given a search depth of 9 plies.
+Based on games played against Komodo, this engine is probably rated around 1800 given a search depth of 9 plies.
 
 https://www.chess.com/member/goldfinger-1964
 
@@ -73,7 +73,7 @@ To watch the engine play against itself, simply run cmd/self/main.go and use any
 |23|Komodo13 (1700)|Loss|51.5%|8|950|very bad game + first game on white; removing iterative deepening after this
 |24|Komodo13 (1700)|Draw by repetition|63.8%|8|1100|bad game, also on white; no iterative deepening
 |25|Komodo13 (1700)|Win|81.5%|8|1950|after figuring out major flaw in evaluation; readded iterative deepening
-|26|Komodo14 (1800)|Win|88.5%|9|2300|longest thinking time of every game so far: (Avg: 6311ms \| Max: 117253ms \| Total: 258775ms); also first brilliant move!!\
+|26|Komodo14 (1800)|Win|88.5%|9|2300|longest thinking time of every game so far: (Avg: 6311ms \| Max: 117253ms \| Total: 258775ms); also first brilliant move!!
 |27|Komodo14 (1800)|Win|88.5%|9|2300|not sure what happened; seems to be the exact same game as 26
 |28|Komodo16 (2000)|Loss|77.5%|9|1800|blundered one move and lost to forced mate
 |29|Komodo16 (2000)|Win|86.0%|9|2300|another brilliant move, only 187266ms total thinking time (3285ms average)
