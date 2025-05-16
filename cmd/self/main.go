@@ -13,7 +13,7 @@ import (
 func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
-	depth := flag.Int("depth", 8, "Starting search depth (recommended 6-8, lower or increase according to required performance)")
+	depth := flag.Int("depth", 6, "Starting search depth (recommended 6-8, lower or increase according to required performance)")
 	flag.Parse()
 
 	// init
