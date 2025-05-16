@@ -1,6 +1,6 @@
 # Goldfinger
 
-Based on games played against Komodo, this engine is probably rated around 1600-1700 given a search depth of 8-9 plies.
+Based on games played against Komodo, this engine is probably rated around 1900-2000 given a search depth of 9 plies.
 
 https://www.chess.com/member/goldfinger-1964
 
