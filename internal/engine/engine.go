@@ -12,10 +12,15 @@ type Options struct {
 
 var (
 	searchDepth int
+	stopFlag    bool
 )
 
-func Init(options Options) {
+func SetOptions(options Options) {
 	searchDepth = options.SearchDepth
+}
+
+func SetStopFlag(flag bool) {
+	stopFlag = flag
 }
 
 func FindMove() (int, int) {
@@ -28,6 +33,10 @@ func FindMove() (int, int) {
 	score := 0
 
 	for depth := 1; depth <= searchDepth; depth++ {
+		if stopFlag {
+			break
+		}
+
 		move, score = alphaBeta(alpha, beta, depth)
 
 		// out of window

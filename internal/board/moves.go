@@ -269,7 +269,27 @@ func StringToPos(input string) int {
 }
 
 func MoveToString(move int) string {
-	return POSITIONTOSTRING[GetSource(move)] + POSITIONTOSTRING[GetTarget(move)]
+	s := POSITIONTOSTRING[GetSource(move)] + POSITIONTOSTRING[GetTarget(move)]
+
+	// handle promotions
+	promotion := GetPromotion(move)
+	if promotion != 0 {
+		var promo byte
+		switch promotion % 6 {
+		case 1:
+			promo = 'n'
+		case 2:
+			promo = 'b'
+		case 3:
+			promo = 'r'
+		case 4:
+			promo = 'q'
+		}
+
+		return s + string(promo)
+	}
+
+	return s
 }
 
 func StringToMove(input string) int {

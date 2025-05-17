@@ -37,6 +37,19 @@ func ParseFEN(fen string) {
 		panic("Invalid FEN format.")
 	}
 
+	// clear states
+	for i := 0; i < 12; i++ {
+		Bitboards[i] = 0
+	}
+	for i := 0; i < 3; i++ {
+		Occupancies[i] = 0
+	}
+	
+	Castle = 0
+	EnPassant = INVALID_SQUARE
+	Fifty = 0
+	RepetitionIndex = 0
+
 	// break up into 4 parts
 	parts := strings.Split(fen, " ")
 
@@ -110,4 +123,26 @@ func ParseFEN(fen string) {
 
 	Fifty = 0
 	RepetitionIndex = 0
+
+	// rehash
+	ZobristHash = 0
+
+	for piece := 0; piece < 12; piece++ {
+		bitboard := Bitboards[piece]
+		for square := 0; square < 64; square++ {
+			if (bitboard & (1 << square)) != 0 {
+				ZobristHash ^= PIECE_HASH[piece][square]
+			}
+		}
+	}
+
+	ZobristHash ^= CASTLE_HASH[Castle]
+
+	if EnPassant != INVALID_SQUARE {
+		ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
+	}
+
+	if Side == BLACK {
+		ZobristHash ^= SIDE_HASH
+	}
 }

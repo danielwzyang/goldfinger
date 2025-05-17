@@ -20,7 +20,7 @@ func main() {
 	board.ParseFEN(*fen)
 	board.Init()
 
-	engine.Init(engine.Options{
+	engine.SetOptions(engine.Options{
 		SearchDepth: *depth,
 	})
 

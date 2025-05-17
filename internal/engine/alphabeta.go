@@ -7,6 +7,10 @@ import (
 )
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
+	if stopFlag {
+		return 0, 0
+	}
+
 	if depth != searchDepth && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
 	}
@@ -87,6 +91,10 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	legalMoves := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		if stopFlag {
+			return bestMove, bestScore
+		}
+
 		move := moves.Moves[moveCount]
 
 		if !board.MakeMove(move, board.ALL_MOVES) {

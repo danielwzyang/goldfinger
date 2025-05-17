@@ -7,6 +7,10 @@ import (
 const DELTA_MARGIN = 975
 
 func quiesce(alpha, beta int) int {
+	if stopFlag {
+		return 0
+	}
+
 	standpat := board.Evaluate()
 
 	if standpat >= beta {
@@ -29,6 +33,10 @@ func quiesce(alpha, beta int) int {
 	delta := DELTA_MARGIN
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		if stopFlag {
+			return alpha
+		}
+
 		move := moves.Moves[moveCount]
 
 		mvvlva := getMVVLVA(move)
