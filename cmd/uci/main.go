@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 var (
 	stopSearch = false
+	plies      = 0.0
 )
 
 func main() {
@@ -78,6 +80,7 @@ func main() {
 			if moveIndex < len(tokens) && tokens[moveIndex] == "moves" {
 				for _, moveStr := range tokens[moveIndex+1:] {
 					board.MakeMove(board.StringToMove(moveStr), board.ALL_MOVES)
+					plies++
 				}
 			}
 
@@ -137,9 +140,10 @@ func main() {
 					SearchDepth: searchDepth,
 				})
 
-				bestMove, _ := engine.FindMove()
+				bestMove, ms := engine.FindMove()
 
 				if !stopSearch {
+					fmt.Printf("info depth %d time %d\n", searchDepth, ms)
 					if bestMove != 0 {
 						fmt.Printf("bestmove %s\n", board.MoveToString(bestMove))
 					} else {
@@ -158,7 +162,7 @@ func main() {
 	}
 }
 
-func getSearchDepth(wtime, btime, winc, binc int, side int) int {
+func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	var timeLeft, increment int
 	if side == board.WHITE {
 		timeLeft = wtime
@@ -168,29 +172,28 @@ func getSearchDepth(wtime, btime, winc, binc int, side int) int {
 		increment = binc
 	}
 
-	if timeLeft == 0 {
-		return 6 // default depth if no time control
-	}
+	// estimating around 40 moves per game with a minimum of 10 moves to end
+	remainingPlies := max(20, 80.0-plies)
 
-	// convert to seconds
-	timeLeftSec := float64(timeLeft) / 1000.0
-	incrementSec := float64(increment) / 1000.0
+	timeForMove := (float64(timeLeft) / remainingPlies) + float64(increment)
 
-	// roughly estimating that ~40 moves left in average position
-	remainingMoves := 40.0
+	// gaussian bump centered at ply 40 with stddev 10
+	// early game gets ~0.9×, peak ~2.5×, endgame ~0.9× again
+	bumpMultiplier := 0.9 + 1.6*math.Exp(-math.Pow((plies-40)/10.0, 2))
+	timeForMove *= bumpMultiplier
 
-	// calculate time left for move
-	timeForMove := (timeLeftSec / remainingMoves) + incrementSec
+	// set relative/absolute bounds for time
+	relativeMax := float64(timeLeft) * 0.1 // 10% of remaining time
+	absoluteMax := 2500.0                  // absolute max (depth 9)
+	timeForMove = min(timeForMove, min(relativeMax, absoluteMax))
 
 	// values tuned based on performance
 	switch {
-	case timeForMove <= 1:
-		return 7
-	case timeForMove <= 5:
-		return 8
-	case timeForMove <= 10:
+	case timeForMove >= 2500:
 		return 9
+	case timeForMove >= 200:
+		return 8
 	default:
-		return 10
+		return 7
 	}
 }
