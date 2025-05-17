@@ -124,6 +124,8 @@ func ParseFEN(fen string) {
 	Fifty = 0
 	RepetitionIndex = 0
 
+	RepetitionTable[0] = ZobristHash
+
 	// rehash
 	ZobristHash = 0
 

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"time"
 
 	"danielyang.cc/chess/internal/board"
@@ -27,6 +28,9 @@ func main() {
 	engineMoves := 0
 	engineTime := 0
 	maxTime := 0
+
+	// Store thinking times for each ply
+	var thinkingTimes []int
 
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Goldfinger | danielyang.cc")
@@ -58,6 +62,8 @@ func main() {
 		board.MakeMove(move, board.ALL_MOVES)
 		gui.UpdateBoard(move)
 
+		thinkingTimes = append(thinkingTimes, ms)
+
 		fmt.Println("The engine played:")
 		board.PrintMove(move)
 		fmt.Println()
@@ -72,6 +78,19 @@ func main() {
 
 	fmt.Println()
 	fmt.Printf("Finished in %d plies.\n", engineMoves)
+
+	// csv used to analyze trends in thinking time
+	file, err := os.Create("thinking_times.csv")
+	if err != nil {
+		fmt.Println("Error creating CSV file:", err)
+	} else {
+		defer file.Close()
+		fmt.Fprintln(file, "ply,ms")
+		for i, t := range thinkingTimes {
+			fmt.Fprintf(file, "%d,%d\n", i+1, t)
+		}
+		fmt.Println("Thinking times exported to thinking_times.csv")
+	}
 
 	fmt.Println()
 	fmt.Println("Stopping in 10 seconds..")
