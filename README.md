@@ -16,7 +16,7 @@ https://www.chess.com/member/goldfinger-1964
 - Late Move Reduction
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
-- PeSTO Evaluation
+- Tapered Evaluation with Piece Square Tables, Pawn Structure, and Tapered King Safety/Activation
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test

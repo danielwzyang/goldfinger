@@ -295,7 +295,7 @@ func queenBonus(color int, square int) int {
 }
 
 func kingBonus(color int, square int) int {
-	gamePhase := calculateGamePhase()
+	gamePhase := CalculateGamePhase()
 
 	if gamePhase > 24 {
 		gamePhase = 24
@@ -453,7 +453,7 @@ func manhattanDistance(sq1, sq2 int) int {
 	return int(math.Abs(float64(file1-file2))) + int(math.Abs(float64(rank1-rank2)))
 }
 
-func calculateGamePhase() int {
+func CalculateGamePhase() int {
 	phase := 0
 	phase += CountBits(Bitboards[WHITE_KNIGHT]|Bitboards[BLACK_KNIGHT]) * GAME_PHASE_INCREMENT[WHITE_KNIGHT]
 	phase += CountBits(Bitboards[WHITE_BISHOP]|Bitboards[BLACK_BISHOP]) * GAME_PHASE_INCREMENT[WHITE_BISHOP]
