@@ -15,8 +15,26 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		return 0, 0
 	}
 
-	// pv node
+	var king int
+	if board.Side == board.WHITE {
+		king = board.WHITE_KING
+	} else {
+		king = board.BLACK_KING
+	}
+
+	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
+
 	pv := beta-alpha > 1
+
+	// increase depth in check
+	if inCheck {
+		depth++
+	}
+
+	// quiesce
+	if depth <= 0 {
+		return 0, quiesce(alpha, beta)
+	}
 
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
@@ -35,27 +53,8 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		}
 	}
 
-	// quiesce
-	if depth == 0 {
-		return 0, quiesce(alpha, beta)
-	}
-
-	var king int
-	if board.Side == board.WHITE {
-		king = board.WHITE_KING
-	} else {
-		king = board.BLACK_KING
-	}
-
-	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
-
-	// increase depth in check
-	if inCheck {
-		depth++
-	}
-
 	// null move pruning
-	if depth >= 3 && depth != searchDepth && !inCheck {
+	if depth >= 3 && depth != searchDepth && !inCheck && !isPawnOnly() {
 		board.MakeNullMove()
 
 		// reduction factor = 2
@@ -165,4 +164,8 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	board.AddTTEntry(bestMove, bestScore, depth, nodeType)
 
 	return bestMove, bestScore
+}
+
+func isPawnOnly() bool {
+	return board.Bitboards[board.WHITE_PAWN]|board.Bitboards[board.WHITE_KING]|board.Bitboards[board.BLACK_PAWN]|board.Bitboards[board.BLACK_KING] == board.Occupancies[board.BOTH]
 }

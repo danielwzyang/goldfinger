@@ -76,8 +76,8 @@ func MakeMove(move int, flag int) bool {
 		SaveState()
 
 		// store current position in repetition table
-		RepetitionIndex++
 		RepetitionTable[RepetitionIndex] = ZobristHash
+		RepetitionIndex++
 
 		source := GetSource(move)
 		target := GetTarget(move)
@@ -200,20 +200,20 @@ func MakeMove(move int, flag int) bool {
 
 		ZobristHash ^= CASTLE_HASH[Castle]
 
-		// reset occupancies
-		Occupancies = [3]uint64{0, 0, 0}
+		Occupancies[WHITE] = Bitboards[WHITE_PAWN] |
+			Bitboards[WHITE_KNIGHT] |
+			Bitboards[WHITE_BISHOP] |
+			Bitboards[WHITE_ROOK] |
+			Bitboards[WHITE_QUEEN] |
+			Bitboards[WHITE_KING]
 
-		// update white occupancies
-		for i := WHITE_PAWN; i <= WHITE_KING; i++ {
-			Occupancies[WHITE] |= Bitboards[i]
-		}
+		Occupancies[BLACK] = Bitboards[BLACK_PAWN] |
+			Bitboards[BLACK_KNIGHT] |
+			Bitboards[BLACK_BISHOP] |
+			Bitboards[BLACK_ROOK] |
+			Bitboards[BLACK_QUEEN] |
+			Bitboards[BLACK_KING]
 
-		// update black occupancies
-		for i := BLACK_PAWN; i <= BLACK_KING; i++ {
-			Occupancies[BLACK] |= Bitboards[i]
-		}
-
-		// update both sides occupancies
 		Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
 
 		// change side

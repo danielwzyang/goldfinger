@@ -7,7 +7,7 @@ var (
 
 func IsRepetition() bool {
 	count := 0
-	for i := 0; i < RepetitionIndex; i++ {
+	for i := RepetitionIndex; i >= 0; i-- {
 		if RepetitionTable[i] == ZobristHash {
 			count++
 			if count == 3 {

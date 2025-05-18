@@ -1,171 +1,17 @@
 package board
 
+import (
+	"math"
+)
+
 var (
-	taperedPieceWeights = [2][6]int{
-		{82, 337, 365, 477, 1025, 12000}, // midgame
-		{94, 281, 297, 512, 936, 12000},  // endgame
-	} // [phase][piece]
-
-	indexMap = [64]int{
-		56, 57, 58, 59, 60, 61, 62, 63,
-		48, 49, 50, 51, 52, 53, 54, 55,
-		40, 41, 42, 43, 44, 45, 46, 47,
-		32, 33, 34, 35, 36, 37, 38, 39,
-		24, 25, 26, 27, 28, 29, 30, 31,
-		16, 17, 18, 19, 20, 21, 22, 23,
-		8, 9, 10, 11, 12, 13, 14, 15,
-		0, 1, 2, 3, 4, 5, 6, 7,
-	}
-
-	psq = [2][6][64]int{
-		// midgame
-		{
-			// pawn
-			{
-				0, 0, 0, 0, 0, 0, 0, 0,
-				98, 134, 61, 95, 68, 126, 34, -11,
-				-6, 7, 26, 31, 65, 56, 25, -20,
-				-14, 13, 6, 21, 23, 12, 17, -23,
-				-27, -2, -5, 12, 17, 6, 10, -25,
-				-26, -4, -4, -10, 3, 3, 33, -12,
-				-35, -1, -20, -23, -15, 24, 38, -22,
-				0, 0, 0, 0, 0, 0, 0, 0,
-			},
-			// knight
-			{
-				-167, -89, -34, -49, 61, -97, -15, -107,
-				-73, -41, 72, 36, 23, 62, 7, -17,
-				-47, 60, 37, 65, 84, 129, 73, 44,
-				-9, 17, 19, 53, 37, 69, 18, 22,
-				-13, 4, 16, 13, 28, 19, 21, -8,
-				-23, -9, 12, 10, 19, 17, 25, -16,
-				-29, -53, -12, -3, -1, 18, -14, -19,
-				-105, -21, -58, -33, -17, -28, -19, -23,
-			},
-			// bishop
-			{
-				-29, 4, -82, -37, -25, -42, 7, -8,
-				-26, 16, -18, -13, 30, 59, 18, -47,
-				-16, 37, 43, 40, 35, 50, 37, -2,
-				-4, 5, 19, 50, 37, 37, 7, -2,
-				-6, 13, 13, 26, 34, 12, 10, 4,
-				0, 15, 15, 15, 14, 27, 18, 10,
-				4, 15, 16, 0, 7, 21, 33, 1,
-				-33, -3, -14, -21, -13, -12, -39, -21,
-			},
-			// rook
-			{
-				32, 42, 32, 51, 63, 9, 31, 43,
-				27, 32, 58, 62, 80, 67, 26, 44,
-				-5, 19, 26, 36, 17, 45, 61, 16,
-				-24, -11, 7, 26, 24, 35, -8, -20,
-				-36, -26, -12, -1, 9, -7, 6, -23,
-				-45, -25, -16, -17, 3, 0, -5, -33,
-				-44, -16, -20, -9, -1, 11, -6, -71,
-				-19, -13, 1, 17, 16, 7, -37, -26,
-			},
-			// queen
-			{
-				-28, 0, 29, 12, 59, 44, 43, 45,
-				-24, -39, -5, 1, -16, 57, 28, 54,
-				-13, -17, 7, 8, 29, 56, 47, 57,
-				-27, -27, -16, -16, -1, 17, -2, 1,
-				-9, -26, -9, -10, -2, -4, 3, -3,
-				-14, 2, -11, -2, -5, 2, 14, 5,
-				-35, -8, 11, 2, 8, 15, -3, 1,
-				-1, -18, -9, 10, -15, -25, -31, -50,
-			},
-			// king
-			{
-				-65, 23, 16, -15, -56, -34, 2, 13,
-				29, -1, -20, -7, -8, -4, -38, -29,
-				-9, 24, 2, -16, -20, 6, 22, -22,
-				-17, -20, -12, -27, -30, -25, -14, -36,
-				-49, -1, -27, -39, -46, -44, -33, -51,
-				-14, -14, -22, -46, -44, -30, -15, -27,
-				1, 7, -8, -64, -43, -16, 9, 8,
-				-15, 36, 12, -54, 8, -28, 24, 14,
-			},
-		},
-
-		// endgame
-		{
-			// pawn
-			{
-				0, 0, 0, 0, 0, 0, 0, 0,
-				178, 173, 158, 134, 147, 132, 165, 187,
-				94, 100, 85, 67, 56, 53, 82, 84,
-				32, 24, 13, 5, -2, 4, 17, 17,
-				13, 9, -3, -7, -7, -8, 3, -1,
-				4, 7, -6, 1, 0, -5, -1, -8,
-				13, 8, 8, 10, 13, 0, 2, -7,
-				0, 0, 0, 0, 0, 0, 0, 0,
-			},
-			// knight
-			{
-				-58, -38, -13, -28, -31, -27, -63, -99,
-				-25, -8, -25, -2, -9, -25, -24, -52,
-				-24, -20, 10, 9, -1, -9, -19, -41,
-				-17, 3, 22, 22, 22, 11, 8, -18,
-				-18, -6, 16, 25, 16, 17, 4, -18,
-				-23, -3, -1, 15, 10, -3, -20, -22,
-				-42, -20, -10, -5, -2, -20, -23, -44,
-				-29, -51, -23, -15, -22, -18, -50, -64,
-			},
-			// bishop
-			{
-				-14, -21, -11, -8, -7, -9, -17, -24,
-				-8, -4, 7, -12, -3, -13, -4, -14,
-				2, -8, 0, -1, -2, 6, 0, 4,
-				-3, 9, 12, 9, 14, 10, 3, 2,
-				-6, 3, 13, 19, 7, 10, -3, -9,
-				-12, -3, 8, 10, 13, 3, -7, -15,
-				-14, -18, -7, -1, 4, -9, -15, -27,
-				-23, -9, -23, -5, -9, -16, -5, -17,
-			},
-			// rook
-			{
-				13, 10, 18, 15, 12, 12, 8, 5,
-				11, 13, 13, 11, -3, 3, 8, 3,
-				7, 7, 7, 5, 4, -3, -5, -3,
-				4, 3, 13, 1, 2, 1, -1, 2,
-				3, 5, 8, 4, -5, -6, -8, -11,
-				-4, 0, -5, -1, -7, -12, -8, -16,
-				-6, -6, 0, 2, -9, -9, -11, -3,
-				-9, 2, 3, -1, -5, -13, 4, -20,
-			},
-			// queen
-			{
-				-9, 22, 22, 27, 27, 19, 10, 20,
-				-17, 20, 32, 41, 58, 25, 30, 0,
-				-20, 6, 9, 49, 47, 35, 19, 9,
-				3, 22, 24, 45, 57, 40, 57, 36,
-				-18, 28, 19, 47, 31, 34, 39, 23,
-				-16, -27, 15, 6, 9, 17, 10, 5,
-				-22, -23, -30, -16, -16, -23, -36, -32,
-				-33, -28, -22, -43, -5, -32, -20, -41,
-			},
-			// king
-			{
-				-74, -35, -18, -18, -11, 15, 4, -17,
-				-12, 17, 14, 17, 17, 38, 23, 11,
-				10, 17, 23, 15, 20, 45, 44, 13,
-				-8, 22, 24, 27, 26, 33, 26, 3,
-				-18, -4, 21, 24, 27, 23, 9, -11,
-				-19, -3, 11, 21, 23, 16, 7, -9,
-				-27, -11, 4, 13, 14, 4, -5, -17,
-				-53, -34, -21, -11, -28, -14, -24, -43,
-			},
-		},
-	}
-
-	gamePhaseInc = [6]int{0, 1, 1, 2, 4, 0} // [piece]
-
 	mgTable = [2][6][64]int{} // [color][piece][square]
 	egTable = [2][6][64]int{} // [color][piece][square]
 
-	MATE        = 10000
-	LIMIT_SCORE = 20000
+	isolatedPawns = [64]uint64{}    // [square]
+	doubledPawns  = [64]uint64{}    // [square]
+	passedPawns   = [2][64]uint64{} // [color][square]
+	outposts      = [2][64]uint64{} // [color][square]
 )
 
 func InitEvalTables() {
@@ -180,6 +26,15 @@ func InitEvalTables() {
 			egTable[BLACK][piece][square] = -(taperedPieceWeights[1][piece] + psq[1][piece][psqIndex^56])
 		}
 	}
+
+	for square := 0; square < 64; square++ {
+		isolatedPawns[square] = isolatedMask(square)
+		doubledPawns[square] = doubledMask(square)
+		passedPawns[WHITE][square] = passedMask(WHITE, square)
+		passedPawns[BLACK][square] = passedMask(BLACK, square)
+		outposts[WHITE][square] = outpostMask(WHITE, square)
+		outposts[BLACK][square] = outpostMask(BLACK, square)
+	}
 }
 
 func Evaluate() int {
@@ -193,6 +48,7 @@ func Evaluate() int {
 
 	color := WHITE
 
+	// Calculate material and piece-square scores
 	for piece := WHITE_PAWN; piece <= BLACK_KING; piece++ {
 		if piece == BLACK_PAWN {
 			color = BLACK
@@ -205,10 +61,10 @@ func Evaluate() int {
 		for bitboard > 0 {
 			square = LS1B(bitboard)
 
-			mgScore += mgTable[color][p][square]
-			egScore += egTable[color][p][square]
+			mgScore += mgTable[color][p][square] + pieceBonus(piece, square)
+			egScore += egTable[color][p][square] + pieceBonus(piece, square)
 
-			gamePhase += gamePhaseInc[p]
+			gamePhase += GAME_PHASE_INCREMENT[p]
 
 			PopBit(&bitboard, square)
 		}
@@ -225,9 +81,383 @@ func Evaluate() int {
 
 	score = (score * (100 - Fifty) / 100)
 
+	kingSafetyScore := 0
+	whiteKingSquare := LS1B(Bitboards[WHITE_KING])
+	blackKingSquare := LS1B(Bitboards[BLACK_KING])
+
+	kingSafetyWeight := (24 - gamePhase) * 2
+	kingSafetyScore = (kingBonus(WHITE, whiteKingSquare) - kingBonus(BLACK, blackKingSquare)) * kingSafetyWeight / 24
+
+	score += kingSafetyScore
+
 	if Side == WHITE {
 		return score
 	}
 
 	return -score
+}
+
+func pieceBonus(piece int, square int) int {
+	switch piece {
+	case WHITE_PAWN:
+		return pawnBonus(WHITE, square)
+	case BLACK_PAWN:
+		return pawnBonus(BLACK, square)
+	case WHITE_KNIGHT:
+		return knightBonus(WHITE, square)
+	case BLACK_KNIGHT:
+		return knightBonus(BLACK, square)
+	case WHITE_BISHOP:
+		return bishopBonus(WHITE, square)
+	case BLACK_BISHOP:
+		return bishopBonus(BLACK, square)
+	case WHITE_ROOK:
+		return rookBonus(WHITE, square)
+	case BLACK_ROOK:
+		return rookBonus(BLACK, square)
+	case WHITE_QUEEN:
+		return queenBonus(WHITE, square)
+	case BLACK_QUEEN:
+		return queenBonus(BLACK, square)
+	case WHITE_KING:
+		return kingBonus(WHITE, square)
+	case BLACK_KING:
+		return kingBonus(BLACK, square)
+	}
+
+	return 0
+}
+
+func pawnBonus(color int, square int) int {
+	value := 0
+	if isProtected(color, square) {
+		value += PAWN_PROTECTED_WEIGHT
+	}
+	if isDoubled(color, square) {
+		value += PAWN_DOUBLED_WEIGHT
+	}
+	if isIsolated(color, square) {
+		value += PAWN_ISOLATED_WEIGHT
+	}
+	if isPassed(color, square) {
+		value += PAWN_PASSED_WEIGHT
+	}
+
+	if color == WHITE {
+		return value
+	}
+
+	return -value
+}
+
+func isProtected(color int, square int) bool {
+	pawn := WHITE_PAWN
+	if color == BLACK {
+		pawn = BLACK_PAWN
+	}
+
+	return PAWN_ATTACKS[color^1][square]&Bitboards[pawn] != 0
+}
+
+func isIsolated(color int, square int) bool {
+	pawn := WHITE_PAWN
+	if color == BLACK {
+		pawn = BLACK_PAWN
+	}
+
+	return Bitboards[pawn]&isolatedPawns[square] != 0
+}
+
+func isDoubled(color int, square int) bool {
+	pawn := WHITE_PAWN
+	if color == BLACK {
+		pawn = BLACK_PAWN
+	}
+
+	return Bitboards[pawn]&doubledPawns[square] != 0
+}
+
+func isPassed(color int, square int) bool {
+	pawn := WHITE_PAWN
+	if color == BLACK {
+		pawn = BLACK_PAWN
+	}
+
+	return Bitboards[pawn]&passedPawns[color][square] != 0
+}
+
+func knightBonus(color int, square int) int {
+	value := 0
+
+	moves := KNIGHT_ATTACKS[square] & ^Occupancies[color]
+
+	pawn := WHITE_PAWN
+	enemyPawn := BLACK_PAWN
+	enemyKing := BLACK_KING
+	if color == BLACK {
+		pawn = BLACK_PAWN
+		enemyPawn = WHITE_PAWN
+		enemyKing = WHITE_KING
+	}
+
+	// square not attacked by enemy pawn pawn and square is protected by friendly pawn
+	if outposts[color][square]&Bitboards[enemyPawn] == 0 && PAWN_ATTACKS[color^1][square]&Bitboards[pawn] != 0 {
+		if color == WHITE {
+			value += KNIGHT_OUTPOST_WEIGHTS[square]
+		} else {
+			value += KNIGHT_OUTPOST_WEIGHTS[square^56]
+		}
+	}
+
+	// add mobility weight, capture weight, and threat to king weight
+	value += CountBits(moves)*KNIGHT_MOBILITY_WEIGHT + CountBits(moves&Occupancies[color^1])*CAPTURE_WEIGHT + CountBits(moves&Bitboards[enemyKing])*KNIGHT_THREAT_WEIGHT
+
+	if color == WHITE {
+		return value
+	}
+
+	return -value
+}
+
+func bishopBonus(color int, square int) int {
+	value := 0
+	moves := GetBishopAttacks(square, Occupancies[BOTH])
+
+	pawn := WHITE_PAWN
+	bishop := WHITE_BISHOP
+	enemyPawn := BLACK_PAWN
+	enemyKing := BLACK_KING
+	if color == BLACK {
+		pawn = BLACK_PAWN
+		bishop = BLACK_BISHOP
+		enemyPawn = WHITE_PAWN
+		enemyKing = WHITE_KING
+	}
+
+	// square not attacked by enemy pawn pawn and square is protected by friendly pawn
+	if outposts[color][square]&Bitboards[enemyPawn] == 0 && PAWN_ATTACKS[color^1][square]&Bitboards[pawn] != 0 {
+		if color == WHITE {
+			value += BISHOP_OUTPOST_WEIGHTS[square]
+		} else {
+			value += BISHOP_OUTPOST_WEIGHTS[square^56]
+		}
+	}
+
+	// increase eval if more than 1 bishop because double bishop attack is strong
+	if CountBits(Bitboards[bishop]) > 1 {
+		value += 35
+	}
+
+	// add mobility weight, capture weight, and threat to king weight
+	value += CountBits(moves)*BISHOP_MOBILITY_WEIGHT + CountBits(moves&Occupancies[color^1])*CAPTURE_WEIGHT + CountBits(moves&Bitboards[enemyKing])*BISHOP_THREAT_WEIGHT
+
+	if color == WHITE {
+		return value
+	}
+
+	return -value
+}
+
+func rookBonus(color int, square int) int {
+	moves := GetRookAttacks(square, Occupancies[BOTH])
+
+	enemyKing := BLACK_KING
+	if color == BLACK {
+		enemyKing = WHITE_KING
+	}
+
+	// add mobility weight, capture weight, and threat to king weight
+	value := CountBits(moves)*ROOK_MOBILITY_WEIGHT + CountBits(moves&Occupancies[color^1])*CAPTURE_WEIGHT + CountBits(moves&Bitboards[enemyKing])*ROOK_THREAT_WEIGHT
+
+	if color == WHITE {
+		return value
+	}
+
+	return -value
+}
+
+func queenBonus(color int, square int) int {
+	moves := GetQueenAttacks(square, Occupancies[BOTH])
+
+	enemyKing := BLACK_KING
+	if color == BLACK {
+		enemyKing = WHITE_KING
+	}
+
+	// add mobility weight, capture weight, and threat to king weight
+	value := CountBits(moves)*QUEEN_MOBILITY_WEIGHT + CountBits(moves&Occupancies[color^1])*CAPTURE_WEIGHT + CountBits(moves&Bitboards[enemyKing])*QUEEN_THREAT_WEIGHT
+
+	if color == WHITE {
+		return value
+	}
+
+	return -value
+}
+
+func kingBonus(color int, square int) int {
+	gamePhase := calculateGamePhase()
+
+	if gamePhase > 24 {
+		gamePhase = 24
+	}
+
+	midgamePhase := gamePhase
+	endgamePhase := 24 - gamePhase
+
+	// king safety (middlegame)
+	safetyScore := 0
+
+	// distance from center penalty
+	safetyScore -= KING_DISTANCE_CENTER_WEIGHT * DISTANCE_FROM_CENTER[square]
+
+	// evaluate pawn shield
+	pawnShield := evaluatePawnShield(color, square)
+	safetyScore += pawnShield
+
+	// castling bonus
+	if color == WHITE {
+		if square == G1 || square == C1 {
+			safetyScore += KING_CASTLED_BONUS
+		}
+	} else {
+		if square == G8 || square == C8 {
+			safetyScore += KING_CASTLED_BONUS
+		}
+	}
+
+	enemyQueen := BLACK_QUEEN
+	enemyRook := BLACK_ROOK
+	enemyBishop := BLACK_BISHOP
+	enemyKnight := BLACK_KNIGHT
+	if color == BLACK {
+		enemyQueen = WHITE_QUEEN
+		enemyRook = WHITE_ROOK
+		enemyBishop = WHITE_BISHOP
+		enemyKnight = WHITE_KNIGHT
+	}
+
+	// king tropism - consider all enemy pieces
+	queenTropism := 0
+	rookTropism := 0
+	bishopTropism := 0
+	knightTropism := 0
+
+	// queen tropism
+	queenBitboard := Bitboards[enemyQueen]
+	for queenBitboard > 0 {
+		queenSquare := LS1B(queenBitboard)
+		dist := manhattanDistance(square, queenSquare)
+		queenTropism += QUEEN_TROPISM_RANGE - dist
+		PopBit(&queenBitboard, queenSquare)
+	}
+
+	// rook tropism
+	rookBitboard := Bitboards[enemyRook]
+	for rookBitboard > 0 {
+		rookSquare := LS1B(rookBitboard)
+		dist := manhattanDistance(square, rookSquare)
+		rookTropism += ROOK_TROPISM_RANGE - dist
+		PopBit(&rookBitboard, rookSquare)
+	}
+
+	// bishop tropism
+	bishopBitboard := Bitboards[enemyBishop]
+	for bishopBitboard > 0 {
+		bishopSquare := LS1B(bishopBitboard)
+		dist := manhattanDistance(square, bishopSquare)
+		bishopTropism += BISHOP_TROPISM_RANGE - dist
+		PopBit(&bishopBitboard, bishopSquare)
+	}
+
+	// knight tropism
+	knightBitboard := Bitboards[enemyKnight]
+	for knightBitboard > 0 {
+		knightSquare := LS1B(knightBitboard)
+		dist := manhattanDistance(square, knightSquare)
+		knightTropism += KNIGHT_TROPISM_RANGE - dist
+		PopBit(&knightBitboard, knightSquare)
+	}
+
+	// apply tropism weights
+	safetyScore -= queenTropism * QUEEN_TROPISM_WEIGHT
+	safetyScore -= rookTropism * ROOK_TROPISM_WEIGHT
+	safetyScore -= bishopTropism * BISHOP_TROPISM_WEIGHT
+	safetyScore -= knightTropism * KNIGHT_TROPISM_WEIGHT
+
+	// king mobility (negative in middlegame for safety)
+	moves := KING_ATTACKS[square] & ^Occupancies[color]
+	safetyScore -= CountBits(moves) * KING_MOBILITY_WEIGHT
+
+	// king activity (endgame)
+	activityScore := 0
+	enemyKingSquare := LS1B(Bitboards[color^1+WHITE_KING])
+
+	// king centralization and distance to enemy king
+	activityScore -= DISTANCE_FROM_CENTER[square] * KING_CENTRALIZATION_WEIGHT
+	activityScore -= manhattanDistance(square, enemyKingSquare) * KING_DISTANCE_ENEMY_WEIGHT
+
+	// king mobility (positive in endgame for activity)
+	activityScore += CountBits(moves) * KING_MOBILITY_WEIGHT
+
+	value := (safetyScore*midgamePhase + activityScore*endgamePhase) / 24
+
+	if color == WHITE {
+		return value
+	}
+	return -value
+}
+
+func evaluatePawnShield(color int, square int) int {
+	value := 0
+	pawn := WHITE_PAWN
+	if color == BLACK {
+		pawn = BLACK_PAWN
+	}
+
+	// create shield mask for the king's file and adjacent files
+	file := square % 8
+	fileMask := uint64(0)
+	if file > 0 {
+		fileMask |= FILE_A << (file - 1)
+	}
+	fileMask |= FILE_A << file
+	if file < 7 {
+		fileMask |= FILE_A << (file + 1)
+	}
+
+	// get forward mask for the king's rank
+	shieldMask := forwardMask(color, square) & fileMask
+
+	// count pawns in shield area
+	shieldPawns := Bitboards[pawn] & shieldMask
+	shieldCount := CountBits(shieldPawns)
+
+	// evaluate central pawns
+	centralPawns := shieldPawns & CENTER_FILES_MASK
+	value += shieldCount * PAWN_SHIELD_BASE_VALUE
+	value += CountBits(centralPawns) * PAWN_SHIELD_CENTRAL_BONUS
+
+	// bonus for complete shield
+	if shieldCount == 3 {
+		value += PAWN_SHIELD_COMPLETE_BONUS
+	}
+
+	return value
+}
+
+func manhattanDistance(sq1, sq2 int) int {
+	file1 := sq1 % 8
+	rank1 := sq1 / 8
+	file2 := sq2 % 8
+	rank2 := sq2 / 8
+	return int(math.Abs(float64(file1-file2))) + int(math.Abs(float64(rank1-rank2)))
+}
+
+func calculateGamePhase() int {
+	phase := 0
+	phase += CountBits(Bitboards[WHITE_KNIGHT]|Bitboards[BLACK_KNIGHT]) * GAME_PHASE_INCREMENT[WHITE_KNIGHT]
+	phase += CountBits(Bitboards[WHITE_BISHOP]|Bitboards[BLACK_BISHOP]) * GAME_PHASE_INCREMENT[WHITE_BISHOP]
+	phase += CountBits(Bitboards[WHITE_ROOK]|Bitboards[BLACK_ROOK]) * GAME_PHASE_INCREMENT[WHITE_ROOK]
+	phase += CountBits(Bitboards[WHITE_QUEEN]|Bitboards[BLACK_QUEEN]) * GAME_PHASE_INCREMENT[WHITE_QUEEN]
+	return phase
 }

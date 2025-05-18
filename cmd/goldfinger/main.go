@@ -56,6 +56,11 @@ func main() {
 			break
 		}
 
+		if board.IsRepetition() {
+			fmt.Println("Draw by repetition!")
+			break
+		}
+
 		if board.Side == playerSide {
 			// player's turn
 
