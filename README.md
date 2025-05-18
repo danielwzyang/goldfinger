@@ -20,7 +20,7 @@ https://www.chess.com/member/goldfinger-1964
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
-- Repetition Table (disregards 3 in a row rule; just ignores the first repetition)
+- Repetition Table
 - Fifty Move Rule Detection
 
 ## Possible Improvements
