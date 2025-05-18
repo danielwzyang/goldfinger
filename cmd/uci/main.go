@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -172,28 +171,49 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 		increment = binc
 	}
 
-	// estimating around 40 moves per game with a minimum of 10 moves to end
+	// assume ~40 moves
 	remainingPlies := max(20, 80.0-plies)
 
+	// base time
 	timeForMove := (float64(timeLeft) / remainingPlies) + float64(increment)
 
-	// gaussian bump centered at ply 40 with stddev 10
-	// early game gets ~0.9×, peak ~2.5×, endgame ~0.9× again
-	bumpMultiplier := 0.9 + 1.6*math.Exp(-math.Pow((plies-40)/10.0, 2))
-	timeForMove *= bumpMultiplier
+	gamePhase := board.CalculateGamePhase()
+	if gamePhase > 24 {
+		gamePhase = 24
+	}
 
-	// set relative/absolute bounds for time
-	relativeMax := float64(timeLeft) * 0.1 // 10% of remaining time
-	absoluteMax := 2500.0                  // absolute max (depth 9)
+	// adjust time based on phase
+	var phaseMultiplier float64
+	if gamePhase >= 16 {
+		// opening/midgame (lots of pieces) = high complexity
+		phaseMultiplier = 2.0
+	} else if gamePhase >= 8 {
+		// early endgame = medium complexity
+		phaseMultiplier = 1.5
+	} else {
+		// late endgame = lower complexity
+		phaseMultiplier = 0.8
+	}
+
+	timeForMove *= phaseMultiplier
+
+	// relative / absolute bounds
+	relativeMax := float64(timeLeft) * 0.15 // 15% for critical positions
+	absoluteMax := 15000.0                  // 15s (approximate time for depth 9)
 	timeForMove = min(timeForMove, min(relativeMax, absoluteMax))
 
-	// values tuned based on performance
 	switch {
-	case timeForMove >= 2500:
+	case timeForMove >= 15000 && gamePhase >= 16:
+		// only use depth 9 in opening/midgame with a lot of time
 		return 9
-	case timeForMove >= 200:
+	case timeForMove >= 3000 && gamePhase >= 8:
+		// use depth 8 in early endgame with good time
 		return 8
-	default:
+	case timeForMove >= 500:
+		// use depth 7 for most positions
 		return 7
+	default:
+		// fallback to depth 6 for time pressure
+		return 6
 	}
 }
