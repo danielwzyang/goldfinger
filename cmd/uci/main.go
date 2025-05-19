@@ -204,16 +204,16 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 
 	switch {
 	case timeForMove >= 15000 && gamePhase >= 16:
-		// only use depth 9 in opening/midgame with a lot of time
-		return 9
-	case timeForMove >= 3000 && gamePhase >= 8:
-		// use depth 8 in early endgame with good time
-		return 8
-	case timeForMove >= 500:
-		// use depth 7 for most positions
+		// only use depth 7 in opening/midgame with a lot of time
 		return 7
-	default:
-		// fallback to depth 6 for time pressure
+	case timeForMove >= 3000 && gamePhase >= 8:
+		// use depth 6 in early endgame with good time
 		return 6
+	case timeForMove >= 500:
+		// use depth 5 for most positions
+		return 5
+	default:
+		// fallback to depth 4 for time pressure
+		return 4
 	}
 }

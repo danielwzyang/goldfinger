@@ -131,16 +131,6 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 				} else {
 					reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
 				}
-
-				// verify reduction with a reduced depth search
-				if reduction > 0 {
-					_, reducedScore := alphaBeta(-(alpha + 1), -alpha, depth-1-reduction)
-					reducedScore *= -1
-					if reducedScore <= alpha {
-						board.RestoreState()
-						continue
-					}
-				}
 			}
 
 			if reduction >= depth {
