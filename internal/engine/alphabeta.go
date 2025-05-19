@@ -57,8 +57,13 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	if depth >= 3 && depth != searchDepth && !inCheck && !isPawnOnly() {
 		board.MakeNullMove()
 
-		// reduction factor = 2
-		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
+		// dynamic reduction based on depth
+		reduction := 2 + depth/6
+		if reduction > 6 {
+			reduction = 6
+		}
+
+		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-reduction)
 		nullEval *= -1
 
 		board.RestoreState()
@@ -71,6 +76,15 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	originalAlpha := alpha
 	bestScore := -board.LIMIT_SCORE
 	bestMove := 0
+
+	// futility pruning
+	futilityMargin := 150 * depth
+	if !pv && !inCheck && depth <= 3 {
+		staticEval := board.Evaluate()
+		if staticEval-futilityMargin >= beta {
+			return 0, beta
+		}
+	}
 
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
@@ -102,13 +116,24 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		legalMoves++
 
+		// late move reduction
 		var reduction int
-		if depth < 3 || moveCount <= 3 || inCheck {
-			reduction = 0
-		} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
-			reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
-		} else {
-			reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
+		if depth >= 3 && moveCount > 3 && !inCheck && !board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1) {
+			if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
+				reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
+			} else {
+				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
+			}
+
+			// verify reduction with a reduced depth search
+			if reduction > 0 {
+				_, reducedScore := alphaBeta(-(alpha + 1), -alpha, depth-1-reduction)
+				reducedScore *= -1
+				if reducedScore <= alpha {
+					board.RestoreState()
+					continue
+				}
+			}
 		}
 
 		if reduction >= depth {

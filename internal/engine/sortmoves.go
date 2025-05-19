@@ -2,7 +2,6 @@ package engine
 
 import (
 	"math/rand"
-	"time"
 
 	"danielyang.cc/chess/internal/board"
 )
@@ -25,10 +24,6 @@ var (
 		{100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600},
 	} // [attacker][victim]
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // insertion sort
 func sortMoves(moves *board.MoveList, scores []int) {
