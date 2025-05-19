@@ -102,6 +102,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 	sortMoves(&moves, scores)
 	legalMoves := 0
+	searched := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		if stopFlag {
@@ -116,34 +117,43 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		legalMoves++
 
-		// late move reduction
-		var reduction int
-		if depth >= 3 && moveCount > 3 && !inCheck && !board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1) {
-			if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
-				reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
-			} else {
-				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
-			}
+		var score int
+		if searched == 0 {
+			// full depth search on first move
+			_, score = alphaBeta(-beta, -alpha, depth-1)
+			score *= -1
+		} else {
+			// late move reduction
+			var reduction int
+			if depth >= 3 && moveCount > 3 && !inCheck && !board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1) {
+				if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
+					reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
+				} else {
+					reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
+				}
 
-			// verify reduction with a reduced depth search
-			if reduction > 0 {
-				_, reducedScore := alphaBeta(-(alpha + 1), -alpha, depth-1-reduction)
-				reducedScore *= -1
-				if reducedScore <= alpha {
-					board.RestoreState()
-					continue
+				// verify reduction with a reduced depth search
+				if reduction > 0 {
+					_, reducedScore := alphaBeta(-(alpha + 1), -alpha, depth-1-reduction)
+					reducedScore *= -1
+					if reducedScore <= alpha {
+						board.RestoreState()
+						continue
+					}
 				}
 			}
-		}
 
-		if reduction >= depth {
-			reduction = depth - 1
-		}
+			if reduction >= depth {
+				reduction = depth - 1
+			}
 
-		_, score := alphaBeta(-beta, -alpha, depth-1-reduction)
-		score *= -1
+			_, score = alphaBeta(-beta, -alpha, depth-1-reduction)
+			score *= -1
+		}
 
 		board.RestoreState()
+
+		searched++
 
 		if score > bestScore {
 			bestScore = score
