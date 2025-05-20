@@ -1,35 +1,22 @@
 package engine
 
 import (
+	"math"
+
 	"danielyang.cc/chess/internal/board"
 )
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
-	// repetition or fifty move draw
+	if stopFlag {
+		return 0, 0
+	}
+
 	if depth != searchDepth && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
 	}
 
-	var king int
-	if board.Side == board.WHITE {
-		king = board.WHITE_KING
-	} else {
-		king = board.BLACK_KING
-	}
-
-	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
-
+	// pv node
 	pv := beta-alpha > 1
-
-	// increase depth in check
-	if inCheck {
-		depth++
-	}
-
-	// quiesce
-	if depth <= 0 {
-		return 0, quiesce(alpha, beta)
-	}
 
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
@@ -48,15 +35,30 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		}
 	}
 
-	originalAlpha := alpha
-	bestScore := -board.LIMIT_SCORE
-	bestMove := 0
+	// quiesce
+	if depth == 0 {
+		return 0, quiesce(alpha, beta)
+	}
+
+	var king int
+	if board.Side == board.WHITE {
+		king = board.WHITE_KING
+	} else {
+		king = board.BLACK_KING
+	}
+
+	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
+
+	// increase depth in check
+	if inCheck {
+		depth++
+	}
 
 	// null move pruning
-	if depth >= 3 && depth != searchDepth && !inCheck && !isPawnOnly() {
+	if depth >= 3 && depth != searchDepth && !inCheck {
 		board.MakeNullMove()
 
-		// R = 2
+		// reduction factor = 2
 		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
 		nullEval *= -1
 
@@ -66,6 +68,10 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 			return 0, beta
 		}
 	}
+
+	originalAlpha := alpha
+	bestScore := -board.LIMIT_SCORE
+	bestMove := 0
 
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
@@ -97,32 +103,21 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		legalMoves++
 
-		var score int
 		var reduction int
-		if legalMoves == 1 {
-			_, score = alphaBeta(-beta, -alpha, depth-1)
-			score = -score
-		} else {
+		if depth < 3 || moveCount <= 3 || inCheck {
 			reduction = 0
-			if !pv && legalMoves > 4 && !inCheck && depth > 3 &&
-				board.GetPromotion(move) == 0 && board.GetEnPassant(move) == 0 &&
-				board.GetCapture(move) == 0 {
-
-				reduction = max(2, depth/4) + legalMoves/8
-			}
-
-			if reduction >= depth {
-				reduction = depth - 1
-			}
-
-			_, score = alphaBeta(-alpha-1, -alpha, depth-1-reduction)
-			score = -score
-
-			if reduction > 0 && score > alpha && score < beta {
-				_, score = alphaBeta(-beta, -alpha, depth-1)
-				score = -score
-			}
+		} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
+			reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
+		} else {
+			reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
 		}
+
+		if reduction >= depth {
+			reduction = depth - 1
+		}
+
+		_, score := alphaBeta(-beta, -alpha, depth-1-reduction)
+		score *= -1
 
 		board.RestoreState()
 
@@ -170,8 +165,4 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	board.AddTTEntry(bestMove, bestScore, depth, nodeType)
 
 	return bestMove, bestScore
-}
-
-func isPawnOnly() bool {
-	return board.Bitboards[board.WHITE_PAWN]|board.Bitboards[board.WHITE_KING]|board.Bitboards[board.BLACK_PAWN]|board.Bitboards[board.BLACK_KING] == board.Occupancies[board.BOTH]
 }

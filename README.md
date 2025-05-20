@@ -1,6 +1,6 @@
 # Goldfinger
 
-Rated ~1600-1700 on Lichess
+Rated ~1700-1800 on Lichess
 
 https://lichess.org/@/goldfinger-bot
 https://www.chess.com/member/goldfinger-1964
@@ -16,11 +16,11 @@ https://www.chess.com/member/goldfinger-1964
 - Late Move Reduction
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
-- Tapered Evaluation with Piece Square Tables, Pawn Structure, and Tapered King Safety/Activation
+- PeSTO Evaluation
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
-- Repetition Table
+- Repetition Table (disregards 3 in a row rule; just ignores the first repetition)
 - Fifty Move Rule Detection
 
 ## Possible Improvements

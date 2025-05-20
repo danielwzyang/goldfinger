@@ -6,8 +6,6 @@ import (
 
 const DELTA_MARGIN = 975
 
-var SIMPLE_PIECE_WEIGHTS = [6]int{100, 325, 325, 500, 975, 10000}
-
 func quiesce(alpha, beta int) int {
 	if stopFlag {
 		return 0
@@ -18,11 +16,6 @@ func quiesce(alpha, beta int) int {
 	if standpat >= beta {
 		return beta
 	}
-
-	if standpat < alpha-DELTA_MARGIN {
-		return alpha
-	}
-
 	if standpat > alpha {
 		alpha = standpat
 	}
@@ -37,12 +30,23 @@ func quiesce(alpha, beta int) int {
 
 	sortMoves(&moves, scores)
 
+	delta := DELTA_MARGIN
+
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		if stopFlag {
 			return alpha
 		}
 
 		move := moves.Moves[moveCount]
+
+		mvvlva := getMVVLVA(move)
+		if mvvlva < 0 {
+			break
+		}
+
+		if standpat+mvvlva+delta < alpha {
+			continue
+		}
 
 		if !board.MakeMove(move, board.ONLY_CAPTURES) {
 			continue
@@ -52,11 +56,11 @@ func quiesce(alpha, beta int) int {
 
 		board.RestoreState()
 
-		if score >= beta {
-			return beta
-		}
 		if score > alpha {
 			alpha = score
+			if score >= beta {
+				return beta
+			}
 		}
 	}
 

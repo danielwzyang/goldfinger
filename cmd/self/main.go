@@ -42,22 +42,13 @@ func main() {
 
 	// game loop
 	for {
-		if over() {
-			fmt.Println("No more legal moves!")
-			break
-		}
-
-		if board.InsufficientMaterial() {
-			fmt.Println("Draw by insufficient material!")
-		}
-
 		if board.Fifty >= 100 {
 			fmt.Println("Draw by fifty move rule!")
 			break
 		}
 
-		if board.IsRepetition() {
-			fmt.Println("Draw by repetition!")
+		if over() {
+			fmt.Println("No more legal moves!")
 			break
 		}
 
