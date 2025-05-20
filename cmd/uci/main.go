@@ -180,9 +180,9 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	switch {
 	case timeForMove >= 15000:
 		return 10
-	case timeForMove >= 2500:
+	case timeForMove >= 6000:
 		return 9
-	case timeForMove >= 200:
+	case timeForMove >= 1000:
 		return 8
 	default:
 		return 7
