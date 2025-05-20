@@ -234,7 +234,7 @@ func bishopBonus(color int, square int) int {
 		enemyKing = WHITE_KING
 	}
 
-	// square not attacked by enemy pawn pawn and square is protected by friendly pawn
+	// square not attacked by enemy pawn and square is protected by friendly pawn
 	if outposts[color][square]&Bitboards[enemyPawn] == 0 && PAWN_ATTACKS[color^1][square]&Bitboards[pawn] != 0 {
 		if color == WHITE {
 			value += BISHOP_OUTPOST_WEIGHTS[square]
@@ -460,4 +460,35 @@ func CalculateGamePhase() int {
 	phase += CountBits(Bitboards[WHITE_ROOK]|Bitboards[BLACK_ROOK]) * GAME_PHASE_INCREMENT[WHITE_ROOK]
 	phase += CountBits(Bitboards[WHITE_QUEEN]|Bitboards[BLACK_QUEEN]) * GAME_PHASE_INCREMENT[WHITE_QUEEN]
 	return phase
+}
+
+func InsufficientMaterial() bool {
+	// king vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING] | Bitboards[BLACK_KING]) {
+		return true
+	}
+
+	// king and knight vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[WHITE_KNIGHT]) ||
+		Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[BLACK_KNIGHT]) {
+		return true
+	}
+
+	// knight and bishop vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[WHITE_BISHOP]) ||
+		Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[BLACK_BISHOP]) {
+		return true
+	}
+
+	// king and bishop vs king and bishop
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING] | Bitboards[BLACK_KING] | Bitboards[WHITE_BISHOP] | Bitboards[BLACK_BISHOP]) {
+		// bishops on the same color squares
+		whiteBishop := LS1B(Bitboards[WHITE_BISHOP])
+		blackBishop := LS1B(Bitboards[BLACK_BISHOP])
+		if (whiteBishop+blackBishop)%2 == 0 {
+			return true
+		}
+	}
+
+	return false
 }

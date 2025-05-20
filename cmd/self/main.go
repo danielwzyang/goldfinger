@@ -47,6 +47,10 @@ func main() {
 			break
 		}
 
+		if board.InsufficientMaterial() {
+			fmt.Println("Draw by insufficient material!")
+		}
+
 		if board.Fifty >= 100 {
 			fmt.Println("Draw by fifty move rule!")
 			break

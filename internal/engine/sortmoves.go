@@ -66,8 +66,8 @@ func scoreMove(move int, depth int) int {
 	if board.GetCapture(move) == 0 &&
 		killerHeuristic[board.Side][depth][0] != move &&
 		killerHeuristic[board.Side][depth][1] != move {
-		// random value between 50 and -50
-		score += rand.Intn(101) - 50
+		// random value between 5 and -5
+		score += rand.Intn(6) - 5
 	}
 
 	return score

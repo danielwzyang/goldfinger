@@ -7,7 +7,12 @@ var (
 
 func IsRepetition() bool {
 	count := 0
-	for i := RepetitionIndex; i >= 0; i-- {
+	// current index = i (one repetition), then i - 4 = two repetitions, i - 8 = three repetitions.
+	for i := RepetitionIndex; i >= RepetitionIndex-8; i -= 4 {
+		if i < 0 {
+			break
+		}
+
 		if RepetitionTable[i] == ZobristHash {
 			count++
 			if count == 3 {

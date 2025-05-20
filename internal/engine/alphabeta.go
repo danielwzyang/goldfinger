@@ -1,16 +1,11 @@
 package engine
 
 import (
-	"math"
-
 	"danielyang.cc/chess/internal/board"
 )
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
-	if stopFlag {
-		return 0, 0
-	}
-
+	// repetition or fifty move draw
 	if depth != searchDepth && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
 	}
@@ -53,35 +48,21 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		}
 	}
 
+	originalAlpha := alpha
+	bestScore := -board.LIMIT_SCORE
+	bestMove := 0
+
 	// null move pruning
 	if depth >= 3 && depth != searchDepth && !inCheck && !isPawnOnly() {
 		board.MakeNullMove()
 
-		// dynamic reduction based on depth
-		reduction := 2 + depth/6
-		if reduction > 6 {
-			reduction = 6
-		}
-
-		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-reduction)
+		// R = 2
+		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
 		nullEval *= -1
 
 		board.RestoreState()
 
 		if nullEval >= beta {
-			return 0, beta
-		}
-	}
-
-	originalAlpha := alpha
-	bestScore := -board.LIMIT_SCORE
-	bestMove := 0
-
-	// futility pruning
-	futilityMargin := 150 * depth
-	if !pv && !inCheck && depth <= 3 {
-		staticEval := board.Evaluate()
-		if staticEval-futilityMargin >= beta {
 			return 0, beta
 		}
 	}
@@ -102,7 +83,6 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 	sortMoves(&moves, scores)
 	legalMoves := 0
-	searched := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		if stopFlag {
@@ -118,32 +98,33 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		legalMoves++
 
 		var score int
-		if searched == 0 {
-			// full depth search on first move
+		var reduction int
+		if legalMoves == 1 {
 			_, score = alphaBeta(-beta, -alpha, depth-1)
-			score *= -1
+			score = -score
 		} else {
-			// late move reduction
-			var reduction int
-			if depth >= 3 && moveCount > 3 && !inCheck && !board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1) {
-				if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
-					reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
-				} else {
-					reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
-				}
+			reduction = 0
+			if !pv && legalMoves > 4 && !inCheck && depth > 3 &&
+				board.GetPromotion(move) == 0 && board.GetEnPassant(move) == 0 &&
+				board.GetCapture(move) == 0 {
+
+				reduction = max(2, depth/4) + legalMoves/8
 			}
 
 			if reduction >= depth {
 				reduction = depth - 1
 			}
 
-			_, score = alphaBeta(-beta, -alpha, depth-1-reduction)
-			score *= -1
+			_, score = alphaBeta(-alpha-1, -alpha, depth-1-reduction)
+			score = -score
+
+			if reduction > 0 && score > alpha && score < beta {
+				_, score = alphaBeta(-beta, -alpha, depth-1)
+				score = -score
+			}
 		}
 
 		board.RestoreState()
-
-		searched++
 
 		if score > bestScore {
 			bestScore = score
