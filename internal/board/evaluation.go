@@ -231,3 +231,34 @@ func Evaluate() int {
 
 	return -score
 }
+
+func InsufficientMaterial() bool {
+	// king vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING] | Bitboards[BLACK_KING]) {
+		return true
+	}
+
+	// king and knight vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[WHITE_KNIGHT]) ||
+		Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[BLACK_KNIGHT]) {
+		return true
+	}
+
+	// knight and bishop vs king
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[WHITE_BISHOP]) ||
+		Occupancies[BOTH] == (Bitboards[WHITE_KING]|Bitboards[BLACK_KING]|Bitboards[BLACK_BISHOP]) {
+		return true
+	}
+
+	// king and bishop vs king and bishop
+	if Occupancies[BOTH] == (Bitboards[WHITE_KING] | Bitboards[BLACK_KING] | Bitboards[WHITE_BISHOP] | Bitboards[BLACK_BISHOP]) {
+		// bishops on the same color squares
+		whiteBishop := LS1B(Bitboards[WHITE_BISHOP])
+		blackBishop := LS1B(Bitboards[BLACK_BISHOP])
+		if (whiteBishop+blackBishop)%2 == 0 {
+			return true
+		}
+	}
+
+	return false
+}

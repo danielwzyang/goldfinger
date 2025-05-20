@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -175,20 +174,12 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	// estimating around 40 moves per game with a minimum of 10 moves to end
 	remainingPlies := max(20, 80.0-plies)
 
-	timeForMove := (float64(timeLeft) / remainingPlies) + float64(increment)
-
-	// gaussian bump centered at ply 40 with stddev 10
-	// early game gets ~0.9×, peak ~2.5×, endgame ~0.9× again
-	bumpMultiplier := 0.9 + 1.6*math.Exp(-math.Pow((plies-40)/10.0, 2))
-	timeForMove *= bumpMultiplier
-
-	// set relative/absolute bounds for time
-	relativeMax := float64(timeLeft) * 0.1 // 10% of remaining time
-	absoluteMax := 2500.0                  // absolute max (depth 9)
-	timeForMove = min(timeForMove, min(relativeMax, absoluteMax))
+	timeForMove := (float64(timeLeft) / (remainingPlies / 2)) + float64(increment)
 
 	// values tuned based on performance
 	switch {
+	case timeForMove >= 15000:
+		return 10
 	case timeForMove >= 2500:
 		return 9
 	case timeForMove >= 200:

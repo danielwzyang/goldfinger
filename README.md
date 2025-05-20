@@ -1,6 +1,6 @@
 # Goldfinger
 
-Rated ~1700-1800 on Lichess
+Rated ~1500-1600 on Lichess
 
 https://lichess.org/@/goldfinger-bot
 https://www.chess.com/member/goldfinger-1964
