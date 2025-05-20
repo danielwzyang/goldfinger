@@ -179,12 +179,16 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	// values tuned based on performance
 	switch {
 	case timeForMove >= 15000:
+		// only in opening/midgame with a lot of time
 		return 10
-	case timeForMove >= 6000:
+	case timeForMove >= 3000:
+		// use in early endgame with good time
 		return 9
-	case timeForMove >= 1000:
+	case timeForMove >= 500:
+		// use for most positions
 		return 8
 	default:
+		// fallback for time pressure
 		return 7
 	}
 }
