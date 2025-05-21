@@ -172,23 +172,34 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	}
 
 	// estimating around 40 moves per game with a minimum of 10 moves to end
-	remainingPlies := max(20, 80.0-plies)
+	remainingMoves := max(20, 80.0-plies) / 2
 
-	timeForMove := (float64(timeLeft) / (remainingPlies / 2)) + float64(increment)
+	timeForMove := (float64(timeLeft) / remainingMoves) + float64(increment)
 
-	// values tuned based on performance
+	// don't allocate more than 50% of remaining time
+	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
+
+	// hard failsafes
 	switch {
-	case timeForMove >= 15000:
-		// only in opening/midgame with a lot of time
+	case timeLeft < 1_000:
+		return 4
+	case timeLeft < 3_000:
+		return 5
+	case timeLeft < 5_000:
+		return 6
+	case timeLeft < 15_000:
+		return 7
+	}
+
+	// values tuned based on performance on my home computer
+	switch {
+	case timeLeft >= 120_000 && timeForMove >= 15_000:
 		return 10
-	case timeForMove >= 3000:
-		// use in early endgame with good time
+	case timeLeft >= 60_000 && timeForMove >= 3_000:
 		return 9
 	case timeForMove >= 500:
-		// use for most positions
 		return 8
 	default:
-		// fallback for time pressure
 		return 7
 	}
 }

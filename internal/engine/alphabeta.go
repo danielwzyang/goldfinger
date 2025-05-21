@@ -18,6 +18,15 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	// pv node
 	pv := beta-alpha > 1
 
+	var king int
+	if board.Side == board.WHITE {
+		king = board.WHITE_KING
+	} else {
+		king = board.BLACK_KING
+	}
+
+	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
+
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
 	if depth != searchDepth && !pv && found && ttEntry.Depth >= depth {
@@ -35,23 +44,14 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		}
 	}
 
-	// quiesce
-	if depth == 0 {
-		return 0, quiesce(alpha, beta)
-	}
-
-	var king int
-	if board.Side == board.WHITE {
-		king = board.WHITE_KING
-	} else {
-		king = board.BLACK_KING
-	}
-
-	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
-
 	// increase depth in check
 	if inCheck {
 		depth++
+	}
+
+	// quiesce
+	if depth <= 0 {
+		return 0, quiesce(alpha, beta)
 	}
 
 	// null move pruning
@@ -103,21 +103,30 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		legalMoves++
 
-		var reduction int
-		if depth < 3 || moveCount <= 3 || inCheck {
-			reduction = 0
-		} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
-			reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
+		var score int
+
+		if legalMoves == 1 {
+			_, score = alphaBeta(-beta, -alpha, depth-1)
+			score = -score
 		} else {
-			reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
-		}
+			reduction := 0
 
-		if reduction >= depth {
-			reduction = depth - 1
-		}
+			if depth < 3 || legalMoves <= 4 || inCheck {
+				reduction = 0
+			} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
+				reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
+			} else {
+				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
+			}
 
-		_, score := alphaBeta(-beta, -alpha, depth-1-reduction)
-		score *= -1
+			_, score = alphaBeta(-alpha-1, -alpha, depth-1-reduction)
+			score = -score
+
+			if score > alpha && score < beta {
+				_, score = alphaBeta(-beta, -alpha, depth-1)
+				score = -score
+			}
+		}
 
 		board.RestoreState()
 

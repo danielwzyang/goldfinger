@@ -56,7 +56,7 @@ func main() {
 			break
 		}
 
-		if board.IsRepetition() {
+		if repetition() {
 			fmt.Println("Draw by repetition!")
 			break
 		}
@@ -158,4 +158,21 @@ func over() bool {
 	}
 
 	return legal == 0
+}
+
+func repetition() bool {
+	count := 0
+	for i := board.RepetitionIndex; i >= board.RepetitionIndex-8; i -= 4 {
+		if i < 0 {
+			break
+		}
+
+		if board.RepetitionTable[i] == board.ZobristHash {
+			count++
+			if count == 3 {
+				return true
+			}
+		}
+	}
+	return false
 }
