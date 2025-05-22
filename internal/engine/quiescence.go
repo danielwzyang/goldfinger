@@ -4,8 +4,6 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-const DELTA_MARGIN = 975
-
 func quiesce(alpha, beta int) int {
 	if stopFlag {
 		return 0
@@ -15,10 +13,6 @@ func quiesce(alpha, beta int) int {
 
 	if standpat >= beta {
 		return beta
-	}
-
-	if standpat < alpha-DELTA_MARGIN {
-		return alpha
 	}
 
 	if standpat > alpha {
