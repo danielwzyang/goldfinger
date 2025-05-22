@@ -369,3 +369,14 @@ func IsSquareAttacked(square int, attacker int) bool {
 
 	return false
 }
+
+func InCheck() bool {
+	var king int
+	if Side == WHITE {
+		king = WHITE_KING
+	} else {
+		king = BLACK_KING
+	}
+
+	return IsSquareAttacked(LS1B(Bitboards[king]), Side^1)
+}

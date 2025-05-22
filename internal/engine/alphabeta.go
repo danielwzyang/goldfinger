@@ -18,15 +18,6 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	// pv node
 	pv := beta-alpha > 1
 
-	var king int
-	if board.Side == board.WHITE {
-		king = board.WHITE_KING
-	} else {
-		king = board.BLACK_KING
-	}
-
-	inCheck := board.IsSquareAttacked(board.LS1B(board.Bitboards[king]), board.Side^1)
-
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
 	if depth != searchDepth && !pv && found && ttEntry.Depth >= depth {
@@ -43,6 +34,8 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 			}
 		}
 	}
+
+	inCheck := board.InCheck()
 
 	// increase depth in check
 	if inCheck {
