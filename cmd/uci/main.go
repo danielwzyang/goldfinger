@@ -78,7 +78,7 @@ func main() {
 			// play moves
 			if moveIndex < len(tokens) && tokens[moveIndex] == "moves" {
 				for _, moveStr := range tokens[moveIndex+1:] {
-					board.MakeMove(board.StringToMove(moveStr), board.ALL_MOVES)
+					board.MakeMove(board.StringToMove(moveStr))
 					plies++
 				}
 			}

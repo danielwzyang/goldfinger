@@ -47,7 +47,7 @@ func Perft(depth int) int {
 
 	for i := 0; i < moves.Count; i++ {
 		move := moves.Moves[i]
-		if !board.MakeMove(move, board.ALL_MOVES) {
+		if !board.MakeMove(move) {
 			continue
 		}
 

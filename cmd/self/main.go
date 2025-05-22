@@ -69,7 +69,7 @@ func main() {
 			break
 		}
 
-		board.MakeMove(move, board.ALL_MOVES)
+		board.MakeMove(move)
 		gui.UpdateBoard(move)
 
 		thinkingTimes = append(thinkingTimes, ms)
@@ -116,7 +116,7 @@ func over() bool {
 	legal := 0
 
 	for _, move := range moves.Moves {
-		if board.MakeMove(move, board.ALL_MOVES) {
+		if board.MakeMove(move) {
 			legal++
 			board.RestoreState()
 		}

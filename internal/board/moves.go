@@ -68,182 +68,172 @@ func GetCastling(move int) int {
 	return move & 0x800000
 }
 
-// flag == 0 for all moves
-// flag == 1 for captures only (e.g quiescence search)
 // returns true if legal, false if not
-func MakeMove(move int, flag int) bool {
-	if flag == ALL_MOVES {
-		SaveState()
+func MakeMove(move int) bool {
+	SaveState()
 
-		// store current position in repetition table
-		RepetitionIndex++
-		RepetitionTable[RepetitionIndex] = ZobristHash
+	// store current position in repetition table
+	RepetitionIndex++
+	RepetitionTable[RepetitionIndex] = ZobristHash
 
-		source := GetSource(move)
-		target := GetTarget(move)
-		piece := GetPiece(move)
-		promotion := GetPromotion(move)
-		capture := GetCapture(move) > 0
-		enpassant := GetEnPassant(move) > 0
-		castling := GetCastling(move) > 0
-		double := GetDouble(move) > 0
+	source := GetSource(move)
+	target := GetTarget(move)
+	piece := GetPiece(move)
+	promotion := GetPromotion(move)
+	capture := GetCapture(move) > 0
+	enpassant := GetEnPassant(move) > 0
+	castling := GetCastling(move) > 0
+	double := GetDouble(move) > 0
 
-		// move piece
-		PopBit(&Bitboards[piece], source)
-		SetBit(&Bitboards[piece], target)
+	// move piece
+	PopBit(&Bitboards[piece], source)
+	SetBit(&Bitboards[piece], target)
 
-		// hash piece
-		ZobristHash ^= PIECE_HASH[piece][source] // remove piece from source square
-		ZobristHash ^= PIECE_HASH[piece][target] // set piece to target square
+	// hash piece
+	ZobristHash ^= PIECE_HASH[piece][source] // remove piece from source square
+	ZobristHash ^= PIECE_HASH[piece][target] // set piece to target square
 
-		Fifty++
+	Fifty++
 
-		if piece == WHITE_PAWN || piece == BLACK_PAWN {
-			Fifty = 0
-		}
-
-		if capture {
-			Fifty = 0
-
-			// set piece range to see which piece is being captured
-			var start, end int
-			if Side == WHITE {
-				start = BLACK_PAWN
-				end = BLACK_KING
-			} else {
-				start = WHITE_PAWN
-				end = WHITE_KING
-			}
-
-			for i := start; i <= end; i++ {
-				// capture found, pop bit
-				if GetBit(Bitboards[i], target) != 0 {
-					PopBit(&Bitboards[i], target)
-					ZobristHash ^= PIECE_HASH[i][target]
-					break
-				}
-			}
-		}
-
-		if promotion > 0 {
-			// pop pawn
-			PopBit(&Bitboards[piece], target)
-			ZobristHash ^= PIECE_HASH[piece][target]
-
-			// add promoted piece
-			SetBit(&Bitboards[promotion], target)
-			ZobristHash ^= PIECE_HASH[promotion][target]
-		}
-
-		if enpassant {
-			// pop captured pawn
-			if Side == WHITE {
-				PopBit(&Bitboards[BLACK_PAWN], target-8)
-				ZobristHash ^= PIECE_HASH[BLACK_PAWN][target-8]
-			} else {
-				PopBit(&Bitboards[WHITE_PAWN], target+8)
-				ZobristHash ^= PIECE_HASH[WHITE_PAWN][target+8]
-			}
-		}
-
-		if EnPassant != INVALID_SQUARE {
-			ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
-		}
-
-		EnPassant = INVALID_SQUARE
-
-		if double {
-			// set enpassant target on double pawn push
-			if Side == WHITE {
-				EnPassant = target - 8
-				ZobristHash ^= ENPASSANT_HASH[(target-8)%8]
-			} else {
-				EnPassant = target + 8
-				ZobristHash ^= ENPASSANT_HASH[(target+8)%8]
-			}
-		}
-
-		if castling {
-			switch target {
-			// white kingside
-			case G1:
-				PopBit(&Bitboards[WHITE_ROOK], H1)
-				SetBit(&Bitboards[WHITE_ROOK], F1)
-				ZobristHash ^= PIECE_HASH[WHITE_ROOK][H1]
-				ZobristHash ^= PIECE_HASH[WHITE_ROOK][F1]
-			// white queenside
-			case C1:
-				PopBit(&Bitboards[WHITE_ROOK], A1)
-				SetBit(&Bitboards[WHITE_ROOK], D1)
-				ZobristHash ^= PIECE_HASH[WHITE_ROOK][A1]
-				ZobristHash ^= PIECE_HASH[WHITE_ROOK][D1]
-			// black kingside
-			case G8:
-				PopBit(&Bitboards[BLACK_ROOK], H8)
-				SetBit(&Bitboards[BLACK_ROOK], F8)
-				ZobristHash ^= PIECE_HASH[BLACK_ROOK][H8]
-				ZobristHash ^= PIECE_HASH[BLACK_ROOK][F8]
-			// black queenside
-			case C8:
-				PopBit(&Bitboards[BLACK_ROOK], A8)
-				SetBit(&Bitboards[BLACK_ROOK], D8)
-				ZobristHash ^= PIECE_HASH[BLACK_ROOK][A8]
-				ZobristHash ^= PIECE_HASH[BLACK_ROOK][D8]
-			}
-		}
-
-		ZobristHash ^= CASTLE_HASH[Castle]
-
-		// update castling rights
-		Castle &= CASTLING_RIGHTS[source]
-		Castle &= CASTLING_RIGHTS[target]
-
-		ZobristHash ^= CASTLE_HASH[Castle]
-
-		// reset occupancies
-		Occupancies = [3]uint64{0, 0, 0}
-
-		// update white occupancies
-		for i := WHITE_PAWN; i <= WHITE_KING; i++ {
-			Occupancies[WHITE] |= Bitboards[i]
-		}
-
-		// update black occupancies
-		for i := BLACK_PAWN; i <= BLACK_KING; i++ {
-			Occupancies[BLACK] |= Bitboards[i]
-		}
-
-		// update both sides occupancies
-		Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
-
-		// change side
-		Side ^= 1
-
-		// hash side
-		ZobristHash ^= SIDE_HASH
-
-		// to prevent pseudo legal moves from being made (i.e. still in check)
-		var king int
-		if Side == WHITE {
-			king = LS1B(Bitboards[BLACK_KING])
-		} else {
-			king = LS1B(Bitboards[WHITE_KING])
-		}
-
-		// illegal move, return false
-		if IsSquareAttacked(king, Side) {
-			RestoreState()
-			return false
-		}
-
-		return true
-	} else if GetCapture(move) > 0 {
-		// flag is capture moves only
-		return MakeMove(move, ALL_MOVES)
+	if piece == WHITE_PAWN || piece == BLACK_PAWN {
+		Fifty = 0
 	}
 
-	// not a capture + flag is captures only
-	return false
+	if capture {
+		Fifty = 0
+
+		// set piece range to see which piece is being captured
+		var start, end int
+		if Side == WHITE {
+			start = BLACK_PAWN
+			end = BLACK_KING
+		} else {
+			start = WHITE_PAWN
+			end = WHITE_KING
+		}
+
+		for i := start; i <= end; i++ {
+			// capture found, pop bit
+			if GetBit(Bitboards[i], target) != 0 {
+				PopBit(&Bitboards[i], target)
+				ZobristHash ^= PIECE_HASH[i][target]
+				break
+			}
+		}
+	}
+
+	if promotion > 0 {
+		// pop pawn
+		PopBit(&Bitboards[piece], target)
+		ZobristHash ^= PIECE_HASH[piece][target]
+
+		// add promoted piece
+		SetBit(&Bitboards[promotion], target)
+		ZobristHash ^= PIECE_HASH[promotion][target]
+	}
+
+	if enpassant {
+		// pop captured pawn
+		if Side == WHITE {
+			PopBit(&Bitboards[BLACK_PAWN], target-8)
+			ZobristHash ^= PIECE_HASH[BLACK_PAWN][target-8]
+		} else {
+			PopBit(&Bitboards[WHITE_PAWN], target+8)
+			ZobristHash ^= PIECE_HASH[WHITE_PAWN][target+8]
+		}
+	}
+
+	if EnPassant != INVALID_SQUARE {
+		ZobristHash ^= ENPASSANT_HASH[EnPassant%8]
+	}
+
+	EnPassant = INVALID_SQUARE
+
+	if double {
+		// set enpassant target on double pawn push
+		if Side == WHITE {
+			EnPassant = target - 8
+			ZobristHash ^= ENPASSANT_HASH[(target-8)%8]
+		} else {
+			EnPassant = target + 8
+			ZobristHash ^= ENPASSANT_HASH[(target+8)%8]
+		}
+	}
+
+	if castling {
+		switch target {
+		// white kingside
+		case G1:
+			PopBit(&Bitboards[WHITE_ROOK], H1)
+			SetBit(&Bitboards[WHITE_ROOK], F1)
+			ZobristHash ^= PIECE_HASH[WHITE_ROOK][H1]
+			ZobristHash ^= PIECE_HASH[WHITE_ROOK][F1]
+		// white queenside
+		case C1:
+			PopBit(&Bitboards[WHITE_ROOK], A1)
+			SetBit(&Bitboards[WHITE_ROOK], D1)
+			ZobristHash ^= PIECE_HASH[WHITE_ROOK][A1]
+			ZobristHash ^= PIECE_HASH[WHITE_ROOK][D1]
+		// black kingside
+		case G8:
+			PopBit(&Bitboards[BLACK_ROOK], H8)
+			SetBit(&Bitboards[BLACK_ROOK], F8)
+			ZobristHash ^= PIECE_HASH[BLACK_ROOK][H8]
+			ZobristHash ^= PIECE_HASH[BLACK_ROOK][F8]
+		// black queenside
+		case C8:
+			PopBit(&Bitboards[BLACK_ROOK], A8)
+			SetBit(&Bitboards[BLACK_ROOK], D8)
+			ZobristHash ^= PIECE_HASH[BLACK_ROOK][A8]
+			ZobristHash ^= PIECE_HASH[BLACK_ROOK][D8]
+		}
+	}
+
+	ZobristHash ^= CASTLE_HASH[Castle]
+
+	// update castling rights
+	Castle &= CASTLING_RIGHTS[source]
+	Castle &= CASTLING_RIGHTS[target]
+
+	ZobristHash ^= CASTLE_HASH[Castle]
+
+	// reset occupancies
+	Occupancies = [3]uint64{0, 0, 0}
+
+	// update white occupancies
+	for i := WHITE_PAWN; i <= WHITE_KING; i++ {
+		Occupancies[WHITE] |= Bitboards[i]
+	}
+
+	// update black occupancies
+	for i := BLACK_PAWN; i <= BLACK_KING; i++ {
+		Occupancies[BLACK] |= Bitboards[i]
+	}
+
+	// update both sides occupancies
+	Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
+
+	// change side
+	Side ^= 1
+
+	// hash side
+	ZobristHash ^= SIDE_HASH
+
+	// to prevent pseudo legal moves from being made (i.e. still in check)
+	var king int
+	if Side == WHITE {
+		king = LS1B(Bitboards[BLACK_KING])
+	} else {
+		king = LS1B(Bitboards[WHITE_KING])
+	}
+
+	// illegal move, return false
+	if IsSquareAttacked(king, Side) {
+		RestoreState()
+		return false
+	}
+
+	return true
 }
 
 func MakeNullMove() {

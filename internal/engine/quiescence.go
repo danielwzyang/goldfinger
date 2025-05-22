@@ -20,7 +20,7 @@ func quiesce(alpha, beta int) int {
 	}
 
 	moves := board.MoveList{}
-	board.GenerateAllMoves(&moves)
+	board.GenerateAllCaptures(&moves)
 
 	scores := make([]int, moves.Count)
 	for i := 0; i < moves.Count; i++ {
@@ -36,7 +36,7 @@ func quiesce(alpha, beta int) int {
 
 		move := moves.Moves[moveCount]
 
-		if !board.MakeMove(move, board.ONLY_CAPTURES) {
+		if !board.MakeMove(move) {
 			continue
 		}
 

@@ -97,7 +97,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		move := moves.Moves[moveCount]
 
-		if !board.MakeMove(move, board.ALL_MOVES) {
+		if !board.MakeMove(move) {
 			continue
 		}
 
