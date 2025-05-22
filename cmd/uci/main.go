@@ -179,27 +179,19 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	// don't allocate more than 50% of remaining time
 	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
 
-	// hard failsafes
-	switch {
-	case timeLeft < 1_000:
-		return 4
-	case timeLeft < 3_000:
-		return 5
-	case timeLeft < 5_000:
-		return 6
-	case timeLeft < 15_000:
-		return 7
-	}
-
 	// values tuned based on performance on my home computer
 	switch {
-	case timeLeft >= 120_000 && timeForMove >= 15_000:
+	case timeLeft >= 60_000 && timeForMove >= 20_000:
 		return 10
-	case timeLeft >= 60_000 && timeForMove >= 3_000:
+	case timeLeft >= 30_000 && timeForMove >= 5_000:
 		return 9
-	case timeForMove >= 500:
+	case timeLeft >= 20_000 && timeForMove >= 1_000:
 		return 8
-	default:
+	case timeLeft >= 10_000:
 		return 7
+	case timeLeft >= 5_000:
+		return 6
+	default:
+		return 5
 	}
 }
