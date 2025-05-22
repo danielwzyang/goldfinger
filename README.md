@@ -1,18 +1,19 @@
 # Goldfinger
 
-Rated ~1500-1600 on Lichess
+Rated ~1700 on Lichess
 
 https://lichess.org/@/goldfinger-bot
-https://www.chess.com/member/goldfinger-1964
 
 ## Current Functionalities
 - UCI Support + Linked with Lichess
 - FEN Processing
-- GUI for Board Representation
 - Input Moves using Long Algebraic Notation
+- Move Encoding (int32)
+- GUI for Board Representation
 - Pseudo Legal Move Generation with Magic Bitboards
 - Iterative Deepening with Aspiration Windows
 - Alpha-Beta Pruning with the Negamax framework
+- Principal Variation Search
 - Late Move Reduction
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
@@ -20,7 +21,7 @@ https://www.chess.com/member/goldfinger-1964
 - Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
-- Repetition Table (disregards 3 in a row rule; just ignores the first repetition)
+- Repetition Table
 - Fifty Move Rule Detection
 
 ## Possible Improvements
