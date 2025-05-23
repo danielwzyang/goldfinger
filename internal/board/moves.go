@@ -5,6 +5,8 @@ import "fmt"
 const ALL_MOVES = 0
 const ONLY_CAPTURES = 1
 
+var lastCapture = -1
+
 type MoveList struct {
 	Moves [256]int
 	Count int
@@ -68,6 +70,74 @@ func GetCastling(move int) int {
 	return move & 0x800000
 }
 
+func GetPieceOnSquare(square int) int {
+	for i := WHITE_PAWN; i <= BLACK_KING; i++ {
+		if GetBit(Bitboards[i], square) != 0 {
+			return i
+		}
+	}
+	return -1
+}
+
+func GetSmallestAttacker(square int, side int) (int, int) {
+	// pawn attacks
+	if side == WHITE {
+		attackers := PAWN_ATTACKS[BLACK][square] & Bitboards[WHITE_PAWN]
+		if attackers != 0 {
+			return WHITE_PAWN, LS1B(attackers)
+		}
+	} else {
+		attackers := PAWN_ATTACKS[WHITE][square] & Bitboards[BLACK_PAWN]
+		if attackers != 0 {
+			return BLACK_PAWN, LS1B(attackers)
+		}
+	}
+
+	// knight attacks
+	knights := KNIGHT_ATTACKS[square] & Bitboards[side*6+1]
+	if knights != 0 {
+		return side*6 + 1, LS1B(knights)
+	}
+
+	// bishop/queen attacks
+	bishops := GetBishopAttacks(square, Occupancies[BOTH]) & (Bitboards[side*6+2] | Bitboards[side*6+4])
+	if bishops != 0 {
+		piece := side*6 + WHITE_BISHOP
+		if Bitboards[side*6+WHITE_QUEEN]&bishops != 0 {
+			piece = side*6 + WHITE_QUEEN
+		}
+		return piece, LS1B(bishops)
+	}
+
+	// rook/queen attacks
+	rooks := GetRookAttacks(square, Occupancies[BOTH]) & (Bitboards[side*6+3] | Bitboards[side*6+4])
+	if rooks != 0 {
+		piece := side*6 + WHITE_ROOK
+		if Bitboards[side*6+WHITE_QUEEN]&rooks != 0 {
+			piece = side*6 + 4
+		}
+		return piece, LS1B(rooks)
+	}
+
+	// king attacks
+	kings := KING_ATTACKS[square] & Bitboards[side*6+5]
+	if kings != 0 {
+		return side*6 + WHITE_KING, LS1B(kings)
+	}
+	return -1, -1
+}
+
+func LastCapturedValue() int {
+	values := [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000}
+	prevSide := Side ^ 1
+	for i := prevSide * 6; i < prevSide*6+6; i++ {
+		if lastCapture == i {
+			return values[i]
+		}
+	}
+	return 0
+}
+
 // returns true if legal, false if not
 func MakeMove(move int) bool {
 	SaveState()
@@ -117,9 +187,12 @@ func MakeMove(move int) bool {
 			if GetBit(Bitboards[i], target) != 0 {
 				PopBit(&Bitboards[i], target)
 				ZobristHash ^= PIECE_HASH[i][target]
+				lastCapture = i // Track the captured piece
 				break
 			}
 		}
+	} else {
+		lastCapture = -1
 	}
 
 	if promotion > 0 {

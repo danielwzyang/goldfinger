@@ -63,23 +63,9 @@ func getMVVLVA(move int) int {
 	attacker := board.GetPiece(move)
 	target := board.GetTarget(move)
 
-	var victim int
-
-	// set piece range to see which piece is being captured
-	var start, end int
-	if board.Side == board.WHITE {
-		start = board.BLACK_PAWN
-		end = board.BLACK_KING
-	} else {
-		start = board.WHITE_PAWN
-		end = board.WHITE_KING
-	}
-
-	for i := start; i <= end; i++ {
-		if board.GetBit(board.Bitboards[i], target) != 0 {
-			victim = i
-			break
-		}
+	victim := board.GetPieceOnSquare(target)
+	if victim == -1 {
+		return 0
 	}
 
 	return MVV_LVA[attacker][victim]
