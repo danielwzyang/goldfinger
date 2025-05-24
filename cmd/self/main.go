@@ -14,7 +14,7 @@ import (
 func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
-	depth := flag.Int("depth", 6, "Starting search depth (recommended 6-8, lower or increase according to required performance)")
+	timeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not iteratively search deeper once time is up.")
 	flag.Parse()
 
 	// init
@@ -22,7 +22,7 @@ func main() {
 	board.Init()
 
 	engine.SetOptions(engine.Options{
-		SearchDepth: *depth,
+		TimeForMove: *timeForMove,
 	})
 
 	engineMoves := 0
@@ -62,7 +62,7 @@ func main() {
 			break
 		}
 
-		move, ms := engine.FindMove()
+		move, ms, depth := engine.FindMove()
 
 		if move == 0 {
 			fmt.Println("The engine resigns :(")
@@ -83,6 +83,7 @@ func main() {
 		maxTime = max(ms, maxTime)
 
 		fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms | Total: %dms)\n", ms, engineTime/engineMoves, maxTime, engineTime)
+		fmt.Printf("Search depth: %d\n", depth)
 		fmt.Println()
 	}
 

@@ -87,19 +87,11 @@ func main() {
 			stopSearch = false
 			engine.SetStopFlag(false)
 
-			var wtime, btime, winc, binc, depth int
-			var infinite bool
+			var wtime, btime, winc, binc int
 
 			// parse time control params
 			for i := 1; i < len(tokens); i++ {
 				switch tokens[i] {
-				case "infinite":
-					infinite = true
-				case "depth":
-					if i+1 < len(tokens) {
-						depth, _ = strconv.Atoi(tokens[i+1])
-						i++
-					}
 				case "wtime":
 					if i+1 < len(tokens) {
 						wtime, _ = strconv.Atoi(tokens[i+1])
@@ -123,26 +115,17 @@ func main() {
 				}
 			}
 
-			// determine search depth
-			searchDepth := 6 // default depth
-			if depth > 0 {
-				searchDepth = depth
-			} else if !infinite {
-				// calculate search depth
-				searchDepth = getSearchDepth(wtime, btime, winc, binc, board.Side)
-			}
-
 			// start search (go routine to allow for stop)
 			go func() {
 				// set depth
 				engine.SetOptions(engine.Options{
-					SearchDepth: searchDepth,
+					TimeForMove: getTimeForMove(wtime, btime, winc, binc),
 				})
 
-				bestMove, ms := engine.FindMove()
+				bestMove, ms, depth := engine.FindMove()
 
 				if !stopSearch {
-					fmt.Printf("info depth %d time %d\n", searchDepth, ms)
+					fmt.Printf("info depth %d time %d\n", depth, ms)
 					if bestMove != 0 {
 						fmt.Printf("bestmove %s\n", board.MoveToString(bestMove))
 					} else {
@@ -161,9 +144,9 @@ func main() {
 	}
 }
 
-func getSearchDepth(wtime, btime, winc, binc, side int) int {
+func getTimeForMove(wtime, btime, winc, binc int) int {
 	var timeLeft, increment int
-	if side == board.WHITE {
+	if board.Side == board.WHITE {
 		timeLeft = wtime
 		increment = winc
 	} else {
@@ -179,19 +162,5 @@ func getSearchDepth(wtime, btime, winc, binc, side int) int {
 	// don't allocate more than 50% of remaining time
 	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
 
-	// values tuned based on performance on my home computer
-	switch {
-	case timeLeft >= 60_000 && timeForMove >= 20_000:
-		return 10
-	case timeLeft >= 30_000 && timeForMove >= 5_000:
-		return 9
-	case timeLeft >= 20_000 && timeForMove >= 1_000:
-		return 8
-	case timeLeft >= 10_000:
-		return 7
-	case timeLeft >= 5_000:
-		return 6
-	default:
-		return 5
-	}
+	return int(timeForMove)
 }

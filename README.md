@@ -41,7 +41,7 @@ To play against the engine, run cmd/goldfinger/main.go using the following optio
 |Flag|Description|Default|Usage|
 |-|-|-|-|
 |fen|board position|starting position|-fen="rnbqkbnr/pp..."
-|depth|search depth|6|-depth=8|
+|time|search time in ms (actual time may exceed this value)|1000|-time=100|
 |black|if included input controls black|no flag = input controls white|-black|
 
 Input moves using long algebraic notation.
