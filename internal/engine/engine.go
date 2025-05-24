@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"time"
 
 	"danielyang.cc/chess/internal/board"
@@ -15,38 +14,29 @@ type Options struct {
 
 var (
 	timeForMove int
-	stopFlag    bool
-	ply         int
-	nodes       int
+	// searchStart is declared elsewhere, do not redeclare here
+	ply   int
+	nodes int
 )
 
 func SetOptions(options Options) {
 	timeForMove = options.TimeForMove
 }
 
-func SetStopFlag(flag bool) {
-	stopFlag = flag
-}
-
-func FindMove() (int, int, int) {
-	start := time.Now()
+// move, time, depth, nodes
+func FindMove() (int, int, int, int) {
+	searchStart = time.Now()
 
 	alpha := -board.LIMIT_SCORE
 	beta := board.LIMIT_SCORE
 
-	move := 0
-	score := 0
 	nodes = 0
-	depthReached := maxSearchDepth
-
 	lastDepthTime := float64(0)
+	bestMove := 0
+	bestDepth := 0
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
-		if stopFlag {
-			break
-		}
-
-		timeLeft := timeForMove - int(time.Since(start).Milliseconds())
+		timeLeft := timeForMove - int(time.Since(searchStart).Milliseconds())
 
 		if depth > 1 && lastDepthTime > 0 {
 			// this assumes the next depth takes 5x the time of the last depth
@@ -54,14 +44,22 @@ func FindMove() (int, int, int) {
 			// but it helps to avoid searching too deep if time is running out
 			estimatedNextDepthTime := lastDepthTime * 5.0
 			if float64(timeLeft) < estimatedNextDepthTime {
-				depthReached = depth - 1
 				break
 			}
 		}
 
 		depthStart := time.Now()
-		move, score = alphaBeta(alpha, beta, depth)
+		move, score := alphaBeta(alpha, beta, depth)
 		lastDepthTime = float64(time.Since(depthStart).Milliseconds())
+
+		// alpha beta will return 0 if time is up
+		if move == 0 {
+			bestDepth = depth - 1
+			break
+		}
+
+		bestMove = move
+		bestDepth = depth
 
 		// out of window
 		if score <= alpha || score >= beta {
@@ -75,10 +73,7 @@ func FindMove() (int, int, int) {
 		beta = score + 50
 	}
 
-	// print nps for total iterative deepening search
-	fmt.Printf("Nodes: %d | per second: %.0f\n", nodes, float64(nodes)/time.Since(start).Seconds())
-
-	return move, timeSince(start), depthReached
+	return bestMove, timeSince(searchStart), bestDepth, nodes
 }
 
 func timeSince(start time.Time) int {

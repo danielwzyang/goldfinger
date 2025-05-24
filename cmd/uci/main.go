@@ -12,8 +12,7 @@ import (
 )
 
 var (
-	stopSearch = false
-	plies      = 0.0
+	plies = 0.0
 )
 
 func main() {
@@ -39,7 +38,6 @@ func main() {
 
 		case "ucinewgame":
 			board.ParseFEN(board.DEFAULT_BOARD)
-			stopSearch = false
 
 		case "position":
 			if len(tokens) < 2 {
@@ -84,9 +82,6 @@ func main() {
 			}
 
 		case "go":
-			stopSearch = false
-			engine.SetStopFlag(false)
-
 			var wtime, btime, winc, binc int
 
 			// parse time control params
@@ -115,29 +110,20 @@ func main() {
 				}
 			}
 
-			// start search (go routine to allow for stop)
 			go func() {
-				// set depth
 				engine.SetOptions(engine.Options{
 					TimeForMove: getTimeForMove(wtime, btime, winc, binc),
 				})
 
-				bestMove, ms, depth := engine.FindMove()
+				bestMove, ms, depth, nodes := engine.FindMove()
 
-				if !stopSearch {
-					fmt.Printf("info depth %d time %d\n", depth, ms)
-					if bestMove != 0 {
-						fmt.Printf("bestmove %s\n", board.MoveToString(bestMove))
-					} else {
-						fmt.Println("bestmove 0000") // no legal moves
-					}
+				fmt.Printf("info depth %d time %d nodes %d nps %d\n", depth, ms, nodes, nodes*1000/ms)
+				if bestMove != 0 {
+					fmt.Printf("bestmove %s\n", board.MoveToString(bestMove))
+				} else {
+					fmt.Println("bestmove 0000") // no legal moves
 				}
 			}()
-
-		case "stop":
-			stopSearch = true
-			engine.SetStopFlag(true)
-
 		case "quit":
 			return
 		}
@@ -157,6 +143,7 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 	// estimating around 40 moves per game with a minimum of 10 moves to end
 	remainingMoves := max(20, 80.0-plies) / 2
 
+	// reserve 2 seconds as overhead
 	timeForMove := (float64(timeLeft) / remainingMoves) + float64(increment)
 
 	// don't allocate more than 50% of remaining time

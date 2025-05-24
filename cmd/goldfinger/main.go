@@ -107,7 +107,7 @@ func main() {
 		} else {
 			// engine's turn
 
-			move, ms, depth := engine.FindMove()
+			move, ms, depth, nodes := engine.FindMove()
 
 			if move == 0 {
 				fmt.Println("The engine resigns :(")
@@ -127,6 +127,8 @@ func main() {
 
 			fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms | Total: %dms)\n", ms, engineTime/engineMoves, maxTime, engineTime)
 			fmt.Printf("Search depth: %d\n", depth)
+			fmt.Printf("Nodes searched: %d\n", nodes)
+			fmt.Printf("Nodes per second: %d\n", nodes*1000/ms)
 		}
 
 		fmt.Println()

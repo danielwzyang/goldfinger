@@ -12,10 +12,6 @@ var SIMPLE_PIECE_VALUES = [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330,
 func quiesce(alpha, beta int) int {
 	nodes++
 
-	if stopFlag {
-		return 0
-	}
-
 	standpat := board.Evaluate()
 
 	if standpat >= beta {
@@ -37,10 +33,6 @@ func quiesce(alpha, beta int) int {
 	sortMoves(&moves, scores)
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
-		if stopFlag {
-			return alpha
-		}
-
 		move := moves.Moves[moveCount]
 
 		victim := board.GetPieceOnSquare(board.GetTarget(move))

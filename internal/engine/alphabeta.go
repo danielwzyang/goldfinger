@@ -2,18 +2,21 @@ package engine
 
 import (
 	"math"
+	"time"
 
 	"danielyang.cc/chess/internal/board"
 )
 
+var searchStart time.Time
+
 func alphaBeta(alpha, beta, depth int) (int, int) {
+	if timeForMove > 0 && time.Since(searchStart).Milliseconds() >= int64(timeForMove) {
+		return 0, 0
+	}
+
 	nodes++
 	ply++
 	defer func() { ply-- }()
-
-	if stopFlag {
-		return 0, 0
-	}
 
 	if ply != 0 && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
@@ -128,10 +131,6 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	legalMoves := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
-		if stopFlag {
-			return bestMove, bestScore
-		}
-
 		move := moves.Moves[moveCount]
 
 		if legalMoves != 0 && depth <= 3 && legalMoves > 6+2*depth*depth && board.GetCapture(move) == 0 {

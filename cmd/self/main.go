@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"time"
 
 	"danielyang.cc/chess/internal/board"
@@ -28,9 +27,6 @@ func main() {
 	engineMoves := 0
 	engineTime := 0
 	maxTime := 0
-
-	// Store thinking times for each ply
-	var thinkingTimes []int
 
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Goldfinger | danielyang.cc")
@@ -62,7 +58,7 @@ func main() {
 			break
 		}
 
-		move, ms, depth := engine.FindMove()
+		move, ms, depth, nodes := engine.FindMove()
 
 		if move == 0 {
 			fmt.Println("The engine resigns :(")
@@ -71,8 +67,6 @@ func main() {
 
 		board.MakeMove(move)
 		gui.UpdateBoard(move)
-
-		thinkingTimes = append(thinkingTimes, ms)
 
 		fmt.Println("The engine played:")
 		board.PrintMove(move)
@@ -84,24 +78,13 @@ func main() {
 
 		fmt.Printf("Thought for %d ms.\n(Avg: %dms | Max: %dms | Total: %dms)\n", ms, engineTime/engineMoves, maxTime, engineTime)
 		fmt.Printf("Search depth: %d\n", depth)
+		fmt.Printf("Nodes searched: %d\n", nodes)
+		fmt.Printf("Nodes per second: %.0f\n", float64(nodes*1000)/float64(ms))
 		fmt.Println()
 	}
 
 	fmt.Println()
 	fmt.Printf("Finished in %d plies.\n", engineMoves)
-
-	// csv used to analyze trends in thinking time
-	file, err := os.Create("thinking_times.csv")
-	if err != nil {
-		fmt.Println("Error creating CSV file:", err)
-	} else {
-		defer file.Close()
-		fmt.Fprintln(file, "ply,ms")
-		for i, t := range thinkingTimes {
-			fmt.Fprintf(file, "%d,%d\n", i+1, t)
-		}
-		fmt.Println("Thinking times exported to thinking_times.csv")
-	}
 
 	fmt.Println()
 	fmt.Println("Stopping in 10 seconds..")
