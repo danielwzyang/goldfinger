@@ -7,11 +7,15 @@ import (
 )
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
+	nodes++
+	ply++
+	defer func() { ply-- }()
+
 	if stopFlag {
 		return 0, 0
 	}
 
-	if depth != searchDepth && board.IsRepetition() || board.Fifty >= 100 {
+	if ply != 0 && board.IsRepetition() || board.Fifty >= 100 {
 		return 0, 0
 	}
 
@@ -20,7 +24,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
-	if depth != searchDepth && !pv && found && ttEntry.Depth >= depth {
+	if ply != 0 && !pv && found && ttEntry.Depth >= depth {
 		switch ttEntry.Type {
 		case board.PVNode:
 			return ttEntry.Move, ttEntry.Score
@@ -48,7 +52,9 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	}
 
 	// null move pruning
-	if depth >= 3 && depth != searchDepth && !inCheck {
+	if depth >= 3 && ply != 0 && !inCheck {
+		ply++
+
 		board.MakeNullMove()
 
 		// reduction factor = 2
@@ -57,8 +63,46 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		board.RestoreState()
 
+		ply--
+
 		if nullEval >= beta {
 			return 0, beta
+		}
+	}
+
+	staticEval := board.Evaluate()
+
+	if !pv && !inCheck && depth <= 3 {
+		margin := 120 * depth
+
+		// reverse futility pruning
+		if staticEval-margin >= beta {
+			return 0, staticEval - margin
+		}
+
+		// futility pruning
+		if staticEval+margin <= alpha {
+			return 0, staticEval + margin
+		}
+	}
+
+	// razoring
+	if !pv && !inCheck && depth <= 3 {
+		score := staticEval + 125
+
+		if score < beta {
+			if depth == 1 {
+				return 0, max(score, quiesce(alpha, beta))
+			}
+
+			score += 175
+
+			if score < beta && depth <= 2 {
+				temp := quiesce(alpha, beta)
+				if temp < beta {
+					return 0, max(temp, score)
+				}
+			}
 		}
 	}
 
@@ -89,6 +133,10 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		}
 
 		move := moves.Moves[moveCount]
+
+		if legalMoves != 0 && depth <= 3 && legalMoves > 6+2*depth*depth && board.GetCapture(move) == 0 {
+			continue
+		}
 
 		if !board.MakeMove(move) {
 			continue
@@ -148,7 +196,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	if legalMoves == 0 {
 		// checkmate
 		if inCheck {
-			return 0, -board.MATE - depth
+			return 0, -board.MATE + ply
 		}
 		// stalemate
 		return 0, 0

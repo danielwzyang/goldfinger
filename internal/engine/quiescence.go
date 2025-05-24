@@ -10,6 +10,8 @@ const deltaMargin = 1050
 var SIMPLE_PIECE_VALUES = [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000}
 
 func quiesce(alpha, beta int) int {
+	nodes++
+
 	if stopFlag {
 		return 0
 	}
@@ -62,7 +64,7 @@ func quiesce(alpha, beta int) int {
 		}
 
 		// static exchange evaluation
-		if seeCapture(board.GetSource(move), board.GetTarget(move), board.Side) < 0 {
+		if seeCapture(move) < 0 {
 			continue
 		}
 
@@ -85,13 +87,13 @@ func quiesce(alpha, beta int) int {
 	return alpha
 }
 
-func see(square int, side int, depth int) int {
+func see(square int, depth int) int {
 	if depth < 0 {
 		return 0
 	}
 
 	// get smallest attacker of square
-	attacker, from := board.GetSmallestAttacker(square, side)
+	attacker, from := board.GetSmallestAttacker(square)
 	if attacker == -1 {
 		return 0
 	}
@@ -103,7 +105,7 @@ func see(square int, side int, depth int) int {
 
 	// recursively call see on the square
 	captured := board.LastCapturedValue()
-	value := captured - see(square, side^1, depth-1)
+	value := captured - see(square, depth-1)
 
 	board.RestoreState()
 
@@ -114,17 +116,15 @@ func see(square int, side int, depth int) int {
 	return value
 }
 
-func seeCapture(from int, to int, side int) int {
-	attacker := board.GetPieceOnSquare(from)
-
-	move := board.EncodeMove(from, to, attacker, 0, 1, 0, 0, 0)
+func seeCapture(move int) int {
 	if !board.MakeMove(move) {
 		return 0
 	}
 
 	// call see on the target square to start recursion
 	captured := board.LastCapturedValue()
-	value := captured - see(to, side^1, maxSeeDepth)
+	to := board.GetTarget(move)
+	value := captured - see(to, maxSeeDepth)
 
 	board.RestoreState()
 

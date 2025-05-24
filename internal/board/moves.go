@@ -79,9 +79,9 @@ func GetPieceOnSquare(square int) int {
 	return -1
 }
 
-func GetSmallestAttacker(square int, side int) (int, int) {
+func GetSmallestAttacker(square int) (int, int) {
 	// pawn attacks
-	if side == WHITE {
+	if Side == WHITE {
 		attackers := PAWN_ATTACKS[BLACK][square] & Bitboards[WHITE_PAWN]
 		if attackers != 0 {
 			return WHITE_PAWN, LS1B(attackers)
@@ -94,35 +94,35 @@ func GetSmallestAttacker(square int, side int) (int, int) {
 	}
 
 	// knight attacks
-	knights := KNIGHT_ATTACKS[square] & Bitboards[side*6+1]
+	knights := KNIGHT_ATTACKS[square] & Bitboards[Side*6+1]
 	if knights != 0 {
-		return side*6 + 1, LS1B(knights)
+		return Side*6 + 1, LS1B(knights)
 	}
 
 	// bishop/queen attacks
-	bishops := GetBishopAttacks(square, Occupancies[BOTH]) & (Bitboards[side*6+2] | Bitboards[side*6+4])
+	bishops := GetBishopAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+2] | Bitboards[Side*6+4])
 	if bishops != 0 {
-		piece := side*6 + WHITE_BISHOP
-		if Bitboards[side*6+WHITE_QUEEN]&bishops != 0 {
-			piece = side*6 + WHITE_QUEEN
+		piece := Side*6 + WHITE_BISHOP
+		if Bitboards[Side*6+WHITE_QUEEN]&bishops != 0 {
+			piece = Side*6 + WHITE_QUEEN
 		}
 		return piece, LS1B(bishops)
 	}
 
 	// rook/queen attacks
-	rooks := GetRookAttacks(square, Occupancies[BOTH]) & (Bitboards[side*6+3] | Bitboards[side*6+4])
+	rooks := GetRookAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+3] | Bitboards[Side*6+4])
 	if rooks != 0 {
-		piece := side*6 + WHITE_ROOK
-		if Bitboards[side*6+WHITE_QUEEN]&rooks != 0 {
-			piece = side*6 + 4
+		piece := Side*6 + WHITE_ROOK
+		if Bitboards[Side*6+WHITE_QUEEN]&rooks != 0 {
+			piece = Side*6 + 4
 		}
 		return piece, LS1B(rooks)
 	}
 
 	// king attacks
-	kings := KING_ATTACKS[square] & Bitboards[side*6+5]
+	kings := KING_ATTACKS[square] & Bitboards[Side*6+5]
 	if kings != 0 {
-		return side*6 + WHITE_KING, LS1B(kings)
+		return Side*6 + WHITE_KING, LS1B(kings)
 	}
 	return -1, -1
 }
