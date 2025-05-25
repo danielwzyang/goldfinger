@@ -8,21 +8,11 @@ import (
 
 const maxSearchDepth = 20
 
-type Options struct {
-	TimeForMove int
-}
-
 var (
-	timeForMove int
-	// searchStart is declared elsewhere, do not redeclare here
+	TimeForMove int
 	ply   int
 	nodes int
 )
-
-func SetOptions(options Options) {
-	timeForMove = options.TimeForMove
-}
-
 // move, time, depth, nodes
 func FindMove() (int, int, int, int) {
 	searchStart = time.Now()
@@ -36,7 +26,7 @@ func FindMove() (int, int, int, int) {
 	bestDepth := 0
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
-		timeLeft := timeForMove - int(time.Since(searchStart).Milliseconds())
+		timeLeft := TimeForMove - int(time.Since(searchStart).Milliseconds())
 
 		if depth > 1 && lastDepthTime > 0 {
 			// this assumes the next depth takes 5x the time of the last depth

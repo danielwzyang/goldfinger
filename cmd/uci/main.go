@@ -111,9 +111,7 @@ func main() {
 			}
 
 			go func() {
-				engine.SetOptions(engine.Options{
-					TimeForMove: getTimeForMove(wtime, btime, winc, binc),
-				})
+				engine.TimeForMove = getTimeForMove(wtime, btime, winc, binc)
 
 				bestMove, ms, depth, nodes := engine.FindMove()
 
@@ -144,10 +142,10 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 	remainingMoves := max(20, 80.0-plies) / 2
 
 	// reserve 2 seconds as overhead
-	timeForMove := (float64(timeLeft) / remainingMoves) + float64(increment)
+	TimeForMove := (float64(timeLeft) / remainingMoves) + float64(increment)
 
 	// don't allocate more than 50% of remaining time
-	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
+	TimeForMove = min(TimeForMove, float64(timeLeft)*0.5)
 
-	return int(timeForMove)
+	return int(TimeForMove)
 }

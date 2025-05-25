@@ -14,7 +14,7 @@ import (
 func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
-	timeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not search iteratively search deeper once time is up.")
+	TimeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not search iteratively search deeper once time is up.")
 	playBlack := flag.Bool("black", false, "Player plays black")
 	flag.Parse()
 
@@ -27,9 +27,7 @@ func main() {
 	board.ParseFEN(*fen)
 	board.Init()
 
-	engine.SetOptions(engine.Options{
-		TimeForMove: *timeForMove,
-	})
+	engine.TimeForMove = *TimeForMove
 
 	engineMoves := 0
 	engineTime := 0

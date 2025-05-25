@@ -10,7 +10,7 @@ import (
 var searchStart time.Time
 
 func alphaBeta(alpha, beta, depth int) (int, int) {
-	if timeForMove > 0 && time.Since(searchStart).Milliseconds() >= int64(timeForMove) {
+	if TimeForMove > 0 && time.Since(searchStart).Milliseconds() >= int64(TimeForMove) {
 		return 0, 0
 	}
 
