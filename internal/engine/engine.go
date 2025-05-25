@@ -18,13 +18,12 @@ type SearchResult struct {
 }
 
 var (
-	ply    int
-	nodes  int
-	Result SearchResult
+	ply   int
+	nodes int
 )
 
 // move, time, depth, nodes
-func FindMove(ctx context.Context) {
+func FindMove(ctx context.Context) SearchResult {
 	start := time.Now()
 
 	alpha := -board.LIMIT_SCORE
@@ -32,11 +31,12 @@ func FindMove(ctx context.Context) {
 
 	nodes = 0
 
+	result := SearchResult{}
+
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		select {
 		case <-ctx.Done():
-			println("test")
-			return
+			return result
 		default:
 		}
 
@@ -47,7 +47,7 @@ func FindMove(ctx context.Context) {
 			break
 		}
 
-		Result = SearchResult{
+		result = SearchResult{
 			move,
 			max(1, timeSince(start)),
 			depth,
@@ -66,6 +66,8 @@ func FindMove(ctx context.Context) {
 		alpha = score - 50
 		beta = score + 50
 	}
+
+	return result
 }
 
 func timeSince(start time.Time) int {

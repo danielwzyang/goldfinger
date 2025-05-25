@@ -18,6 +18,7 @@ func main() {
 	flag.Parse()
 
 	// init
+	board.Init()
 	board.ParseFEN(*fen)
 
 	engineMoves := 0
@@ -55,10 +56,11 @@ func main() {
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeForMove)*time.Millisecond)
+		fmt.Println(timeForMove)
 		defer cancel()
 
-		engine.FindMove(ctx)
-		move, ms, depth, nodes := engine.Result.BestMove, engine.Result.Time, engine.Result.Depth, engine.Result.Nodes
+		result := engine.FindMove(ctx)
+		move, ms, depth, nodes := result.BestMove, result.Time, result.Depth, result.Nodes
 
 		if move == 0 {
 			fmt.Println("The engine resigns :(")

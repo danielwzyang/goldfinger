@@ -18,6 +18,7 @@ type State struct {
 
 func ResetStateHistory() {
 	StateSize = 0
+	BoardStates[0] = State{}
 }
 
 func SaveState() {

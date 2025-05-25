@@ -13,10 +13,12 @@ import (
 	"danielyang.cc/chess/internal/engine"
 )
 
-var plies = 0.0
+var plies = 0
 
 func main() {
 	var cancelFunc context.CancelFunc
+
+	board.Init()
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -37,12 +39,17 @@ func main() {
 			fmt.Println("readyok")
 
 		case "ucinewgame":
+			board.Init()
 			board.ParseFEN(board.DEFAULT_BOARD)
+			engine.ResetHeuristics()
 
 		case "position":
 			if len(tokens) < 2 {
 				continue
 			}
+
+			board.Init()
+			engine.ResetHeuristics()
 
 			moveIndex := 1
 			if tokens[1] == "startpos" {
@@ -82,7 +89,7 @@ func main() {
 			}
 
 		case "go":
-			var wtime, btime, winc, binc int
+			var wtime, btime, winc, binc, movestogo int
 
 			// parse time control params
 			for i := 1; i < len(tokens); i++ {
@@ -107,20 +114,22 @@ func main() {
 						binc, _ = strconv.Atoi(tokens[i+1])
 						i++
 					}
+				case "movestogo":
+					if i+1 < len(tokens) {
+						movestogo, _ = strconv.Atoi(tokens[i+1])
+						i++
+					}
 				}
 			}
 
-			timeForMove := getTimeForMove(wtime, btime, winc, binc)
-			fmt.Println(timeForMove)
+			timeForMove := getTimeForMove(wtime, btime, winc, binc, movestogo)
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeForMove)*time.Millisecond)
 			cancelFunc = cancel
 
 			go func() {
-				defer cancelFunc()
-
-				engine.FindMove(ctx)
-				printResult(engine.Result)
+				result := engine.FindMove(ctx)
+				printResult(result)
 			}()
 		case "stop":
 			if cancelFunc != nil {
@@ -133,7 +142,7 @@ func main() {
 	}
 }
 
-func getTimeForMove(wtime, btime, winc, binc int) int {
+func getTimeForMove(wtime, btime, winc, binc, movestogo int) int {
 	var timeLeft, increment int
 	if board.Side == board.WHITE {
 		timeLeft = wtime
@@ -144,10 +153,10 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 	}
 
 	// estimating around 40 moves per game with a minimum of 10 moves to end
-	remainingMoves := max(20, 80.0-plies) / 2
+	remainingMoves := max(movestogo, max(20, 80-plies)/2)
 
 	// reserve 2 seconds as overhead
-	TimeForMove := (float64(timeLeft) / remainingMoves) + float64(increment)
+	TimeForMove := (float64(timeLeft) / float64(remainingMoves)) + float64(increment)
 
 	// don't allocate more than 50% of remaining time
 	TimeForMove = min(TimeForMove, float64(timeLeft)*0.5)

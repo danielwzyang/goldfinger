@@ -48,9 +48,6 @@ func ParseFEN(fen string) {
 	Castle = 0
 	EnPassant = INVALID_SQUARE
 	Fifty = 0
-	RepetitionIndex = 0
-
-	Init()
 
 	// break up into 4 parts
 	parts := strings.Split(fen, " ")

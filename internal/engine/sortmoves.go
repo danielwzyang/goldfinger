@@ -70,3 +70,20 @@ func getMVVLVA(move int) int {
 
 	return MVV_LVA[attacker][victim]
 }
+
+func ResetHeuristics() {
+	for i := range killerHeuristic {
+		for j := range killerHeuristic[i] {
+			for k := range killerHeuristic[i][j] {
+				killerHeuristic[i][j][k] = 0
+			}
+		}
+	}
+	for i := range historyHeuristic {
+		for j := range historyHeuristic[i] {
+			for k := range historyHeuristic[i][j] {
+				historyHeuristic[i][j][k] = 0
+			}
+		}
+	}
+}
