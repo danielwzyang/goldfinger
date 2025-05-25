@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"context"
+
 	"danielyang.cc/chess/internal/board"
 )
 
@@ -9,7 +11,13 @@ const deltaMargin = 1050
 
 var SIMPLE_PIECE_VALUES = [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000}
 
-func quiesce(alpha, beta int) int {
+func quiesce(ctx context.Context, alpha, beta int) int {
+	select {
+	case <-ctx.Done():
+		return alpha
+	default:
+	}
+
 	nodes++
 
 	standpat := board.Evaluate()
@@ -33,6 +41,12 @@ func quiesce(alpha, beta int) int {
 	sortMoves(&moves, scores)
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		select {
+		case <-ctx.Done():
+			return alpha
+		default:
+		}
+
 		move := moves.Moves[moveCount]
 
 		victim := board.GetPieceOnSquare(board.GetTarget(move))
@@ -64,7 +78,7 @@ func quiesce(alpha, beta int) int {
 			continue
 		}
 
-		score := -quiesce(-beta, -alpha)
+		score := -quiesce(ctx, -beta, -alpha)
 
 		board.RestoreState()
 

@@ -2,21 +2,21 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
 )
 
-var (
-	plies = 0.0
-)
+var plies = 0.0
 
 func main() {
-	board.Init()
+	var cancelFunc context.CancelFunc
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -110,18 +110,23 @@ func main() {
 				}
 			}
 
+			timeForMove := getTimeForMove(wtime, btime, winc, binc)
+			fmt.Println(timeForMove)
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeForMove)*time.Millisecond)
+			cancelFunc = cancel
+
 			go func() {
-				engine.TimeForMove = getTimeForMove(wtime, btime, winc, binc)
+				defer cancelFunc()
 
-				bestMove, ms, depth, nodes := engine.FindMove()
-
-				fmt.Printf("info depth %d time %d nodes %d nps %d\n", depth, ms, nodes, nodes*1000/ms)
-				if bestMove != 0 {
-					fmt.Printf("bestmove %s\n", board.MoveToString(bestMove))
-				} else {
-					fmt.Println("bestmove 0000") // no legal moves
-				}
+				engine.FindMove(ctx)
+				printResult(engine.Result)
 			}()
+		case "stop":
+			if cancelFunc != nil {
+				cancelFunc()
+			}
+
 		case "quit":
 			return
 		}
@@ -148,4 +153,14 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 	TimeForMove = min(TimeForMove, float64(timeLeft)*0.5)
 
 	return int(TimeForMove)
+}
+
+func printResult(result engine.SearchResult) {
+	fmt.Printf("info depth %d time %d nodes %d nps %d score %d\n",
+		result.Depth, result.Time, result.Nodes, result.Nodes*1000/result.Time, result.Score)
+	if result.BestMove != 0 {
+		fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
+	} else {
+		fmt.Println("bestmove 0000")
+	}
 }

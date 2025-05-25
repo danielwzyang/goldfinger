@@ -5,6 +5,11 @@ var (
 	RepetitionTable = [4096]uint64{}
 )
 
+func ResetRepetition() {
+	RepetitionIndex = 0
+	RepetitionTable[0] = 0
+}
+
 func IsRepetition() bool {
 	count := 1
 	historyDepth := max(0, RepetitionIndex-int(Fifty))

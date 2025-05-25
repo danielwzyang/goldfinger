@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -13,14 +14,11 @@ import (
 func main() {
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
-	TimeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not iteratively search deeper once time is up.")
+	timeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not iteratively search deeper once time is up.")
 	flag.Parse()
 
 	// init
 	board.ParseFEN(*fen)
-	board.Init()
-
-	engine.TimeForMove = *TimeForMove
 
 	engineMoves := 0
 	engineTime := 0
@@ -56,7 +54,11 @@ func main() {
 			break
 		}
 
-		move, ms, depth, nodes := engine.FindMove()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeForMove)*time.Millisecond)
+		defer cancel()
+
+		engine.FindMove(ctx)
+		move, ms, depth, nodes := engine.Result.BestMove, engine.Result.Time, engine.Result.Depth, engine.Result.Nodes
 
 		if move == 0 {
 			fmt.Println("The engine resigns :(")

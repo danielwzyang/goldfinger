@@ -1,17 +1,17 @@
 package engine
 
 import (
+	"context"
 	"math"
-	"time"
 
 	"danielyang.cc/chess/internal/board"
 )
 
-var searchStart time.Time
-
-func alphaBeta(alpha, beta, depth int) (int, int) {
-	if TimeForMove > 0 && time.Since(searchStart).Milliseconds() >= int64(TimeForMove) {
+func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
+	select {
+	case <-ctx.Done():
 		return 0, 0
+	default:
 	}
 
 	nodes++
@@ -51,7 +51,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 	// quiesce
 	if depth <= 0 {
-		return 0, quiesce(alpha, beta)
+		return 0, quiesce(ctx, alpha, beta)
 	}
 
 	// null move pruning
@@ -61,7 +61,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		board.MakeNullMove()
 
 		// reduction factor = 2
-		_, nullEval := alphaBeta(-beta, -beta+1, depth-1-2)
+		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-2)
 		nullEval *= -1
 
 		board.RestoreState()
@@ -95,13 +95,13 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 
 		if score < beta {
 			if depth == 1 {
-				return 0, max(score, quiesce(alpha, beta))
+				return 0, max(score, quiesce(ctx, alpha, beta))
 			}
 
 			score += 175
 
 			if score < beta && depth <= 2 {
-				temp := quiesce(alpha, beta)
+				temp := quiesce(ctx, alpha, beta)
 				if temp < beta {
 					return 0, max(temp, score)
 				}
@@ -131,6 +131,11 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 	legalMoves := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		select {
+		case <-ctx.Done():
+			return bestMove, bestScore
+		default:
+		}
 		move := moves.Moves[moveCount]
 
 		if legalMoves != 0 && depth <= 3 && legalMoves > 6+2*depth*depth && board.GetCapture(move) == 0 {
@@ -146,7 +151,7 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 		var score int
 
 		if legalMoves == 1 {
-			_, score = alphaBeta(-beta, -alpha, depth-1)
+			_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
 			score = -score
 		} else {
 			reduction := 0
@@ -159,11 +164,11 @@ func alphaBeta(alpha, beta, depth int) (int, int) {
 				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
 			}
 
-			_, score = alphaBeta(-alpha-1, -alpha, depth-1-reduction)
+			_, score = alphaBeta(ctx, -alpha-1, -alpha, depth-1-reduction)
 			score = -score
 
 			if score > alpha && score < beta {
-				_, score = alphaBeta(-beta, -alpha, depth-1)
+				_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
 				score = -score
 			}
 		}

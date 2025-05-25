@@ -36,4 +36,8 @@ func Init() {
 	InitEvalTables()
 
 	InitZobristTables()
+
+	ResetRepetition()
+
+	ResetStateHistory()
 }

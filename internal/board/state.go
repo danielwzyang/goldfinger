@@ -6,14 +6,18 @@ var BoardStates = [4096]State{}
 var StateSize = 0
 
 type State struct {
-	Bitboards   [12]uint64
-	Occupancies [3]uint64
-	Side        int
-	EnPassant   int
-	Castle      int
-	ZobristHash uint64
-	Fifty       int
+	Bitboards       [12]uint64
+	Occupancies     [3]uint64
+	Side            int
+	EnPassant       int
+	Castle          int
+	ZobristHash     uint64
+	Fifty           int
 	RepetitionIndex int
+}
+
+func ResetStateHistory() {
+	StateSize = 0
 }
 
 func SaveState() {
