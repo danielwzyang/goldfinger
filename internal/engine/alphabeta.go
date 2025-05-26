@@ -102,12 +102,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	legalMoves := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
-		select {
-		case <-ctx.Done():
-			return 0, 0
-		default:
-		}
-
 		move := moves.Moves[moveCount]
 
 		// late move pruning

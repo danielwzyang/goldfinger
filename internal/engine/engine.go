@@ -34,17 +34,13 @@ func FindMove(ctx context.Context) SearchResult {
 	result := SearchResult{}
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
+		move, score := alphaBeta(ctx, alpha, beta, depth)
+
+		// ignore search if time ran out midway
 		select {
 		case <-ctx.Done():
 			return result
 		default:
-		}
-
-		move, score := alphaBeta(ctx, alpha, beta, depth)
-
-		// alpha beta will return 0 if time is up
-		if move == 0 {
-			break
 		}
 
 		result = SearchResult{
