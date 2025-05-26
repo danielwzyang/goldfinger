@@ -44,6 +44,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		}
 	}
 
+	// internal iterative reduction
 	// no tt entry so reduce depth by 1 to save time for next iteration
 	if !found && depth >= 4 {
 		depth--
@@ -59,6 +60,14 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	// quiesce
 	if depth <= 0 {
 		return 0, quiesce(ctx, alpha, beta)
+	}
+
+	staticEval := board.Evaluate()
+
+	// reverse futility pruning
+	futilityMargin := 150 * depth
+	if !root && !pv && !inCheck && (found || board.GetCapture(ttEntry.Move) != 0) && staticEval-futilityMargin >= beta {
+		return 0, staticEval
 	}
 
 	// null move pruning
@@ -105,7 +114,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		move := moves.Moves[moveCount]
 
 		// late move pruning
-		if depth <= 5 && !pv && !inCheck && moveCount > 6+2*depth*depth && board.GetCapture(move) == 0 {
+		if depth <= 4 && !pv && !inCheck && moveCount > 3+depth*depth && board.GetCapture(move) == 0 {
 			continue
 		}
 

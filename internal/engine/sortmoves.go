@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	killerHeuristic  = [2][64][2]int{}  // [side][depth][order] (side so no conflict when playing self)
+	killerHeuristic  = [2][100][2]int{} // [side][depth][order] (side so no conflict when playing self)
 	historyHeuristic = [2][12][64]int{} // [side][piece][square]
 	MVV_LVA          = [12][12]int{
 		{105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605},
