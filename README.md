@@ -15,7 +15,6 @@ https://lichess.org/@/goldfinger-bot
 - Alpha-Beta Pruning with the Negamax framework
 - Principal Variation Search
 - Late Move Reduction
-- Late Move Pruning
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
 - PeSTO Evaluation

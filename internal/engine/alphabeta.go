@@ -104,11 +104,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		move := moves.Moves[moveCount]
 
-		// late move pruning
-		if depth <= 5 && moveCount > 4+depth*depth && board.GetCapture(move) == 0 {
-			continue
-		}
-
 		if !board.MakeMove(move) {
 			continue
 		}
