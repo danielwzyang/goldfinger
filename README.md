@@ -1,6 +1,6 @@
 # Goldfinger
 
-Rated ~1700 on Lichess
+Rated ~1800 on Lichess
 
 https://lichess.org/@/goldfinger-bot
 
@@ -15,6 +15,7 @@ https://lichess.org/@/goldfinger-bot
 - Alpha-Beta Pruning with the Negamax framework
 - Principal Variation Search
 - Late Move Reduction
+- Late Move Pruning
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
 - PeSTO Evaluation
@@ -41,7 +42,7 @@ To play against the engine, run cmd/goldfinger/main.go using the following optio
 |Flag|Description|Default|Usage|
 |-|-|-|-|
 |fen|board position|starting position|-fen="rnbqkbnr/pp..."
-|time|search time in ms (actual time may exceed this value)|1000|-time=100|
+|time|search time in ms|1000|-time=100|
 |black|if included input controls black|no flag = input controls white|-black|
 
 Input moves using long algebraic notation.
