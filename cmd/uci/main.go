@@ -14,9 +14,7 @@ import (
 	"danielyang.cc/chess/internal/engine"
 )
 
-var plies = 0.0
-
-const delay = 100
+const delay = 300
 
 func main() {
 	var cancelFunc context.CancelFunc
@@ -87,7 +85,6 @@ func main() {
 			if moveIndex < len(tokens) && tokens[moveIndex] == "moves" {
 				for _, moveStr := range tokens[moveIndex+1:] {
 					board.MakeMove(board.StringToMove(moveStr))
-					plies++
 				}
 			}
 
