@@ -20,10 +20,11 @@ type SearchResult struct {
 var (
 	ply   int
 	nodes int
+	Stop  context.CancelFunc
 )
 
 // move, time, depth, nodes
-func FindMove(ctx context.Context) SearchResult {
+func FindMove(timeForMove int) SearchResult {
 	start := time.Now()
 
 	alpha := -board.LIMIT_SCORE
@@ -32,6 +33,11 @@ func FindMove(ctx context.Context) SearchResult {
 	nodes = 0
 
 	result := SearchResult{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove))
+	Stop = cancel
+	defer cancel()
+	defer func() { Stop = nil }()
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		move, score := alphaBeta(ctx, alpha, beta, depth)

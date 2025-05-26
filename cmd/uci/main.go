@@ -2,25 +2,17 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"math"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
 )
 
-var plies = 0.0
-
-const delay = 100
-
 func main() {
-	var cancelFunc context.CancelFunc
-
 	board.Init()
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -87,7 +79,6 @@ func main() {
 			if moveIndex < len(tokens) && tokens[moveIndex] == "moves" {
 				for _, moveStr := range tokens[moveIndex+1:] {
 					board.MakeMove(board.StringToMove(moveStr))
-					plies++
 				}
 			}
 
@@ -122,18 +113,13 @@ func main() {
 
 			timeForMove := getTimeForMove(wtime, btime, winc, binc)
 
-			// 100 ms delay for the engine to prepare
-			ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove+delay))
-			cancelFunc = cancel
-
 			go func() {
-				result := engine.FindMove(ctx)
-				<-ctx.Done()
+				result := engine.FindMove(timeForMove)
 				printResult(result)
 			}()
 		case "stop":
-			if cancelFunc != nil {
-				cancelFunc()
+			if engine.Stop != nil {
+				engine.Stop()
 			}
 
 		case "quit":
@@ -175,7 +161,8 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 	// cap to 50% of time left
 	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
 
-	return int(timeForMove)
+	// >= 1ms
+	return max(1, int(timeForMove))
 }
 
 func printResult(result engine.SearchResult) {

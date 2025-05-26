@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"regexp"
@@ -104,10 +103,7 @@ func main() {
 		} else {
 			// engine's turn
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeForMove)*time.Millisecond)
-			defer cancel()
-
-			result := engine.FindMove(ctx)
+			result := engine.FindMove(*timeForMove)
 			move, ms, depth, nodes := result.BestMove, result.Time, result.Depth, result.Nodes
 
 			if move == 0 {
