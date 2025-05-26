@@ -36,31 +36,39 @@ func FindMove(ctx context.Context) SearchResult {
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		move, score := alphaBeta(ctx, alpha, beta, depth)
 
-		// ignore search if time ran out midway
-		select {
-		case <-ctx.Done():
-			return result
-		default:
-		}
-
-		result = SearchResult{
-			move,
-			timeSince(start),
-			depth,
-			nodes,
-			score,
-		}
-
 		// out of window
 		if score <= alpha || score >= beta {
 			alpha = -board.LIMIT_SCORE
 			beta = board.LIMIT_SCORE
-			continue
+			move, score = alphaBeta(ctx, alpha, beta, depth)
 		}
 
-		// narrow down window by 50 centipawns
+		// narrow window
 		alpha = score - 50
-		beta = score + 50
+		beta = score + 100
+
+		// ignore search if time ran out midway
+		select {
+		case <-ctx.Done():
+			// search was cut off
+			return SearchResult{
+				result.BestMove, // ignore the move from the cut off search
+				timeSince(start),
+				depth,
+				nodes,
+				result.Score, // ignore the score from the cut off search
+			}
+		default:
+			// search completed successfully
+			result = SearchResult{
+				move,
+				timeSince(start),
+				depth,
+				nodes,
+				score,
+			}
+		}
+
 	}
 
 	return result
