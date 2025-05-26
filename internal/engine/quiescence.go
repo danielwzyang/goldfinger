@@ -14,7 +14,7 @@ var SIMPLE_PIECE_VALUES = [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330,
 func quiesce(ctx context.Context, alpha, beta int) int {
 	select {
 	case <-ctx.Done():
-		return alpha
+		return 0
 	default:
 	}
 
@@ -43,7 +43,7 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		select {
 		case <-ctx.Done():
-			return alpha
+			return 0
 		default:
 		}
 

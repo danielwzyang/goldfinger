@@ -49,7 +49,7 @@ func FindMove(ctx context.Context) SearchResult {
 
 		result = SearchResult{
 			move,
-			max(1, timeSince(start)),
+			timeSince(start),
 			depth,
 			nodes,
 			score,

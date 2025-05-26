@@ -140,3 +140,17 @@ func InsufficientMaterial() bool {
 
 	return false
 }
+
+func CalculateGamePhase() int {
+	gamePhase := 0
+
+	for piece := WHITE_PAWN; piece <= BLACK_KING; piece++ {
+		gamePhase += gamePhaseInc[piece] * CountBits(Bitboards[piece])
+	}
+
+	if gamePhase > 24 {
+		gamePhase = 24
+	}
+
+	return gamePhase
+}

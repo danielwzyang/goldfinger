@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -13,7 +14,9 @@ import (
 	"danielyang.cc/chess/internal/engine"
 )
 
-var plies = 0
+var plies = 0.0
+
+const delay = 100
 
 func main() {
 	var cancelFunc context.CancelFunc
@@ -89,7 +92,7 @@ func main() {
 			}
 
 		case "go":
-			var wtime, btime, winc, binc, movestogo int
+			var wtime, btime, winc, binc int
 
 			// parse time control params
 			for i := 1; i < len(tokens); i++ {
@@ -114,21 +117,18 @@ func main() {
 						binc, _ = strconv.Atoi(tokens[i+1])
 						i++
 					}
-				case "movestogo":
-					if i+1 < len(tokens) {
-						movestogo, _ = strconv.Atoi(tokens[i+1])
-						i++
-					}
 				}
 			}
 
-			timeForMove := getTimeForMove(wtime, btime, winc, binc, movestogo)
+			timeForMove := getTimeForMove(wtime, btime, winc, binc)
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeForMove)*time.Millisecond)
+			// 100 ms delay for the engine to prepare
+			ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove+delay))
 			cancelFunc = cancel
 
 			go func() {
 				result := engine.FindMove(ctx)
+				<-ctx.Done()
 				printResult(result)
 			}()
 		case "stop":
@@ -142,7 +142,7 @@ func main() {
 	}
 }
 
-func getTimeForMove(wtime, btime, winc, binc, movestogo int) int {
+func getTimeForMove(wtime, btime, winc, binc int) int {
 	var timeLeft, increment int
 	if board.Side == board.WHITE {
 		timeLeft = wtime
@@ -152,21 +152,35 @@ func getTimeForMove(wtime, btime, winc, binc, movestogo int) int {
 		increment = binc
 	}
 
-	// estimating around 40 moves per game with a minimum of 10 moves to end
-	remainingMoves := max(movestogo, max(20, 80-plies)/2)
+	// 0 (endgame) to 24 (opening)
+	phase := float64(board.CalculateGamePhase())
 
-	// reserve 2 seconds as overhead
-	TimeForMove := (float64(timeLeft) / float64(remainingMoves)) + float64(increment)
+	// midgame = ~20, endgame = ~10
+	remainingMoves := max(10.0, 24.0-phase+10.0)
 
-	// don't allocate more than 50% of remaining time
-	TimeForMove = min(TimeForMove, float64(timeLeft)*0.5)
+	// safety margin of 0.9 and reserve for 2 seconds
+	reserve := 2000
+	if timeLeft < int(reserve) {
+		reserve = 0
+	}
+	baseTime := 0.9*(float64(timeLeft-reserve)/remainingMoves) + float64(increment)
 
-	return int(TimeForMove)
+	// tapered time scaling from 0.5x (opening/endgame) to 1.0x (midgame)
+	// quadratic peak at midgame (phase = 12)
+	scaling := 1.0 - math.Pow((phase-12.0)/12.0, 2)
+	scaling = max(.5, min(1.0, scaling))
+
+	timeForMove := baseTime * scaling
+
+	// cap to 50% of time left
+	timeForMove = min(timeForMove, float64(timeLeft)*0.5)
+
+	return int(timeForMove)
 }
 
 func printResult(result engine.SearchResult) {
-	fmt.Printf("info depth %d time %d nodes %d nps %d score %d\n",
-		result.Depth, result.Time, result.Nodes, result.Nodes*1000/result.Time, result.Score)
+	fmt.Printf("info depth %d time %d nodes %d nps %d score cp %d\n",
+		result.Depth, result.Time, result.Nodes, result.Nodes*1000/max(1, result.Time), result.Score)
 	if result.BestMove != 0 {
 		fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
 	} else {

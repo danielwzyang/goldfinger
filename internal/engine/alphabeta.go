@@ -25,9 +25,11 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	// pv node
 	pv := beta-alpha > 1
 
+	root := ply == 0
+
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
-	if ply != 0 && !pv && found && ttEntry.Depth >= depth {
+	if !root && !pv && found && ttEntry.Depth >= depth {
 		switch ttEntry.Type {
 		case board.PVNode:
 			return ttEntry.Move, ttEntry.Score
@@ -40,6 +42,11 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 				return ttEntry.Move, ttEntry.Score
 			}
 		}
+	}
+
+	// no tt entry so reduce depth by 1 to save time for next iteration
+	if !found && depth >= 4 {
+		depth--
 	}
 
 	inCheck := board.InCheck()
@@ -73,42 +80,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		}
 	}
 
-	staticEval := board.Evaluate()
-
-	if !pv && !inCheck && depth <= 3 {
-		margin := 120 * depth
-
-		// reverse futility pruning
-		if staticEval-margin >= beta {
-			return 0, staticEval - margin
-		}
-
-		// futility pruning
-		if staticEval+margin <= alpha {
-			return 0, staticEval + margin
-		}
-	}
-
-	// razoring
-	if !pv && !inCheck && depth <= 3 {
-		score := staticEval + 125
-
-		if score < beta {
-			if depth == 1 {
-				return 0, max(score, quiesce(ctx, alpha, beta))
-			}
-
-			score += 175
-
-			if score < beta && depth <= 2 {
-				temp := quiesce(ctx, alpha, beta)
-				if temp < beta {
-					return 0, max(temp, score)
-				}
-			}
-		}
-	}
-
 	originalAlpha := alpha
 	bestScore := -board.LIMIT_SCORE
 	bestMove := 0
@@ -133,14 +104,11 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
 		select {
 		case <-ctx.Done():
-			return bestMove, bestScore
+			return 0, 0
 		default:
 		}
-		move := moves.Moves[moveCount]
 
-		if legalMoves != 0 && depth <= 3 && legalMoves > 6+2*depth*depth && board.GetCapture(move) == 0 {
-			continue
-		}
+		move := moves.Moves[moveCount]
 
 		if !board.MakeMove(move) {
 			continue
