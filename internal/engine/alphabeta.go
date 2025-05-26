@@ -110,6 +110,11 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 		move := moves.Moves[moveCount]
 
+		// late move pruning
+		if depth <= 5 && moveCount > 4+depth*depth && board.GetCapture(move) == 0 {
+			continue
+		}
+
 		if !board.MakeMove(move) {
 			continue
 		}
@@ -122,6 +127,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 			_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
 			score = -score
 		} else {
+			// late move reduction
 			reduction := 0
 
 			if depth < 3 || legalMoves <= 4 || inCheck {
@@ -135,6 +141,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 			_, score = alphaBeta(ctx, -alpha-1, -alpha, depth-1-reduction)
 			score = -score
 
+			// principal variation search
 			if score > alpha && score < beta {
 				_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
 				score = -score

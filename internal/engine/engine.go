@@ -7,7 +7,7 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-const maxSearchDepth = 20
+const maxSearchDepth = 64
 
 type SearchResult struct {
 	BestMove int
