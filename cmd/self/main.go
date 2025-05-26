@@ -56,7 +56,6 @@ func main() {
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeForMove)*time.Millisecond)
-		fmt.Println(timeForMove)
 		defer cancel()
 
 		result := engine.FindMove(ctx)

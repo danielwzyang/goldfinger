@@ -41,12 +41,6 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 	sortMoves(&moves, scores)
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
-		select {
-		case <-ctx.Done():
-			return 0
-		default:
-		}
-
 		move := moves.Moves[moveCount]
 
 		victim := board.GetPieceOnSquare(board.GetTarget(move))
