@@ -103,7 +103,7 @@ func main() {
 		} else {
 			// engine's turn
 
-			result := engine.FindMove(*timeForMove)
+			result := engine.FindMove(*timeForMove, false)
 			move, ms, depth, nodes := result.BestMove, result.Time, result.Depth, result.Nodes
 
 			if move == 0 {

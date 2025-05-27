@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"danielyang.cc/chess/internal/board"
@@ -24,7 +25,7 @@ var (
 )
 
 // move, time, depth, nodes
-func FindMove(timeForMove int) SearchResult {
+func FindMove(timeForMove int, print bool) SearchResult {
 	start := time.Now()
 
 	alpha := -board.LIMIT_SCORE
@@ -37,7 +38,14 @@ func FindMove(timeForMove int) SearchResult {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove))
 	Stop = cancel
 	defer cancel()
-	defer func() { Stop = nil }()
+	defer func() {
+		Stop = nil
+		if result.BestMove != 0 {
+			fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
+		} else {
+			fmt.Println("bestmove 0000")
+		}
+	}()
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		move, score := alphaBeta(ctx, alpha, beta, depth)
@@ -57,13 +65,7 @@ func FindMove(timeForMove int) SearchResult {
 		select {
 		case <-ctx.Done():
 			// search was cut off
-			return SearchResult{
-				result.BestMove, // ignore the move from the cut off search
-				timeSince(start),
-				depth,
-				nodes,
-				result.Score, // ignore the score from the cut off search
-			}
+			return result
 		default:
 			// search completed successfully
 			result = SearchResult{
@@ -72,6 +74,10 @@ func FindMove(timeForMove int) SearchResult {
 				depth,
 				nodes,
 				score,
+			}
+
+			if print {
+				printInfo(result)
 			}
 		}
 
@@ -82,4 +88,9 @@ func FindMove(timeForMove int) SearchResult {
 
 func timeSince(start time.Time) int {
 	return int(time.Since(start).Milliseconds())
+}
+
+func printInfo(result SearchResult) {
+	fmt.Printf("info depth %d time %d nodes %d nps %d score cp %d\n",
+		result.Depth, result.Time, result.Nodes, result.Nodes*1000/max(1, result.Time), result.Score)
 }

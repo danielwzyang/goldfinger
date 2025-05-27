@@ -114,8 +114,7 @@ func main() {
 			timeForMove := getTimeForMove(wtime, btime, winc, binc)
 
 			go func() {
-				result := engine.FindMove(timeForMove)
-				printResult(result)
+				engine.FindMove(timeForMove, true)
 			}()
 		case "stop":
 			if engine.Stop != nil {
@@ -163,14 +162,4 @@ func getTimeForMove(wtime, btime, winc, binc int) int {
 
 	// >= 1ms
 	return max(1, int(timeForMove))
-}
-
-func printResult(result engine.SearchResult) {
-	fmt.Printf("info depth %d time %d nodes %d nps %d score cp %d\n",
-		result.Depth, result.Time, result.Nodes, result.Nodes*1000/max(1, result.Time), result.Score)
-	if result.BestMove != 0 {
-		fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
-	} else {
-		fmt.Println("bestmove 0000")
-	}
 }
