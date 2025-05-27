@@ -18,7 +18,17 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	ply++
 	defer func() { ply-- }()
 
-	if ply != 0 && board.IsRepetition() || board.Fifty >= 100 {
+	if ply != 0 && board.IsRepetition() {
+		staticEval := board.Evaluate()
+		// if position is relatively good then penalize drawing
+		if staticEval > 200 {
+			return 0, -board.MATE / 2
+		}
+
+		return 0, 0
+	}
+
+	if board.Fifty >= 100 {
 		return 0, 0
 	}
 
