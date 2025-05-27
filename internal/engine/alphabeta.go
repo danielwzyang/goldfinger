@@ -18,7 +18,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	ply++
 	defer func() { ply-- }()
 
-	if ply != 0 && board.IsRepetition() {
+	// root node
+	root := ply == 0
+
+	if !root && board.IsRepetition() {
 		staticEval := board.Evaluate()
 		// if position is relatively good then penalize drawing
 		if staticEval > 200 {
@@ -34,8 +37,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// pv node
 	pv := beta-alpha > 1
-
-	root := ply == 0
 
 	// tt entry
 	ttEntry, found := board.GetTTEntry()
