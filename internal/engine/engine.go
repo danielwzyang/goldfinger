@@ -35,7 +35,7 @@ func FindMove(timeForMove int, print bool) SearchResult {
 
 	if polyglot.HasBookMove() {
 		return SearchResult{
-			polyglot.GetBestMove(),
+			polyglot.GetWeightedRandomMove(),
 			timeSince(start),
 			0,
 			0,
