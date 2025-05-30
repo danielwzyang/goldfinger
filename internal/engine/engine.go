@@ -26,7 +26,7 @@ var (
 )
 
 func Init() {
-	polyglot.LoadBook("books/komodo.bin")
+	polyglot.LoadBook("books/Perfect2023.bin")
 }
 
 // move, time, depth, nodes
