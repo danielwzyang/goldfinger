@@ -23,6 +23,13 @@ var (
 	} // [attacker][victim]
 )
 
+const (
+	PV_BONUS       = 20000
+	CAPTURE_BONUS  = 10000
+	KILLER_BONUS_1 = 9000
+	KILLER_BONUS_2 = 8000
+)
+
 // insertion sort
 func sortMoves(moves *board.MoveList, scores []int) {
 	for i := 1; i < moves.Count; i++ {
@@ -41,22 +48,18 @@ func sortMoves(moves *board.MoveList, scores []int) {
 }
 
 func scoreMove(move int, depth int) int {
-	score := 0
-
 	if board.GetCapture(move) > 0 {
-		score += getMVVLVA(move)
+		return CAPTURE_BONUS + getMVVLVA(move)
 	}
 
 	if killerHeuristic[board.Side][depth][0] == move {
-		score += 9000
+		return KILLER_BONUS_1
 	}
 	if killerHeuristic[board.Side][depth][1] == move {
-		score += 8000
+		return KILLER_BONUS_2
 	}
 
-	score += historyHeuristic[board.Side][board.GetPiece(move)][board.GetTarget(move)]
-
-	return score
+	return historyHeuristic[board.Side][board.GetPiece(move)][board.GetTarget(move)]
 }
 
 func getMVVLVA(move int) int {

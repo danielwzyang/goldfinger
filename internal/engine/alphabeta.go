@@ -102,7 +102,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	for i := 0; i < moves.Count; i++ {
 		if found && moves.Moves[i] == ttEntry.Move {
 			// pv move
-			scores[i] = 20000
+			scores[i] = PV_BONUS
 			continue
 		}
 
