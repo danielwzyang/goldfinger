@@ -33,21 +33,6 @@ func Init() {
 func FindMove(timeForMove int, print bool) SearchResult {
 	start := time.Now()
 
-	if polyglot.HasBookMove() {
-		return SearchResult{
-			polyglot.GetWeightedRandomMove(),
-			timeSince(start),
-			0,
-			0,
-			0,
-		}
-	}
-
-	alpha := -board.LIMIT_SCORE
-	beta := board.LIMIT_SCORE
-
-	nodes = 0
-
 	result := SearchResult{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove))
@@ -55,14 +40,28 @@ func FindMove(timeForMove int, print bool) SearchResult {
 	defer cancel()
 	defer func() {
 		Stop = nil
-		if print {
-			if result.BestMove != 0 {
-				fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
-			} else {
-				fmt.Println("bestmove 0000")
-			}
+		if result.BestMove != 0 {
+			fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
+		} else {
+			fmt.Println("bestmove 0000")
 		}
 	}()
+
+	if polyglot.HasBookMove() {
+		result = SearchResult{
+			polyglot.GetWeightedRandomMove(),
+			timeSince(start),
+			0,
+			0,
+			0,
+		}
+		return result
+	}
+
+	alpha := -board.LIMIT_SCORE
+	beta := board.LIMIT_SCORE
+
+	nodes = 0
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		move, score := alphaBeta(ctx, alpha, beta, depth)
