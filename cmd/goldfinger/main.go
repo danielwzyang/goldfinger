@@ -27,8 +27,6 @@ func main() {
 	board.Init()
 	board.ParseFEN(*fen)
 
-	engine.Init()
-
 	engineMoves := 0
 	engineTime := 0
 	maxTime := 0

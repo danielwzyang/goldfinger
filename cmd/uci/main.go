@@ -14,7 +14,6 @@ import (
 
 func main() {
 	board.Init()
-	engine.Init()
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"danielyang.cc/chess/internal/board"
-	"danielyang.cc/chess/internal/polyglot"
 )
 
 const maxSearchDepth = 64
@@ -25,23 +24,9 @@ var (
 	Stop  context.CancelFunc
 )
 
-func Init() {
-	polyglot.LoadBook("books/komodo.bin")
-}
-
 // move, time, depth, nodes
 func FindMove(timeForMove int, print bool) SearchResult {
 	start := time.Now()
-
-	if polyglot.HasBookMove() {
-		return SearchResult{
-			polyglot.GetBestMove(),
-			timeSince(start),
-			0,
-			0,
-			0,
-		}
-	}
 
 	alpha := -board.LIMIT_SCORE
 	beta := board.LIMIT_SCORE
@@ -55,12 +40,10 @@ func FindMove(timeForMove int, print bool) SearchResult {
 	defer cancel()
 	defer func() {
 		Stop = nil
-		if print {
-			if result.BestMove != 0 {
-				fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
-			} else {
-				fmt.Println("bestmove 0000")
-			}
+		if result.BestMove != 0 {
+			fmt.Printf("bestmove %s\n", board.MoveToString(result.BestMove))
+		} else {
+			fmt.Println("bestmove 0000")
 		}
 	}()
 
