@@ -18,17 +18,16 @@ https://lichess.org/@/goldfinger-bot
 - Null Move Pruning
 - Move Ordering with MVV-LVA, Killer Heuristic, and History Heuristic
 - PeSTO Evaluation
-- Quiescence Search with Delta Pruning and basic Static Exchange Evaluation
+- Quiescence Search with Delta Pruning and Static Exchange Evaluation
 - Tranposition Table with Zobrist Hashing
 - Perft Test
 - Repetition Table
 - Fifty Move Rule Detection
+- Polyglot Opening Book Support
 
 ## Possible Improvements
-- Opening / Ending Books
 - NNUE Evaluation
-- Material Draw
-- More Pruning / Reduction Strategies e.g. Recursive Static Exchange Evaluation
+- Better Handcrafted Evaluation with Pawn Structure, King Safety, etc.
 
 ## Usage
 
