@@ -108,6 +108,8 @@ func main() {
 			result := engine.FindMove(*timeForMove, false)
 			move, ms, depth, nodes := result.BestMove, result.Time, result.Depth, result.Nodes
 
+			ms = max(1, ms)
+
 			if move == 0 {
 				fmt.Println("The engine resigns :(")
 				break
