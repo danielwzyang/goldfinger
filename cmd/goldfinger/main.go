@@ -37,6 +37,8 @@ func main() {
 	gui.NewGame()
 	go gui.Run()
 
+	time.Sleep(5 * time.Second)
+
 	// game loop
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Goldfinger | danielyang.cc")
