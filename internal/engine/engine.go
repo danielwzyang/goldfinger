@@ -74,8 +74,8 @@ func FindMove(timeForMove int, print bool) SearchResult {
 		}
 
 		// narrow window
-		alpha = score - 50
-		beta = score + 100
+		alpha = max(-board.LIMIT_SCORE, score - 50)
+		beta = min(board.LIMIT_SCORE, score + 100)
 
 		// ignore search if time ran out midway
 		select {
