@@ -19,7 +19,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	defer func() { ply-- }()
 
 	// root node
-	root := ply == 0
+	root := ply == 1
 
 	// draws
 	if (!root && board.IsRepetition()) || board.Fifty >= 100 {
@@ -68,8 +68,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// null move pruning
 	if depth >= 3 && ply != 0 && !inCheck {
-		ply++
-
 		board.MakeNullMove()
 
 		// reduction factor = 2
@@ -77,8 +75,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		nullEval *= -1
 
 		board.RestoreState()
-
-		ply--
 
 		if nullEval >= beta {
 			return 0, beta
