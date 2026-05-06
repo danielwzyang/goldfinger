@@ -23,7 +23,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// draws
 	if (!root && board.IsRepetition()) || board.Fifty >= 100 {
-		return 0, 0
+		return 0, -25 // contempt
 	}
 
 	// pv node
