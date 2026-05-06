@@ -13,7 +13,7 @@ func ResetRepetition() {
 func IsRepetition() bool {
 	count := 1
 	historyDepth := max(0, RepetitionIndex-int(Fifty))
-	for i := RepetitionIndex - 2; i >= historyDepth; i -= 2 {
+	for i := RepetitionIndex - 1; i >= historyDepth; i -= 2 {
 		if RepetitionTable[i] == ZobristHash {
 			count++
 			if count == 3 {
