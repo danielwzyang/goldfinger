@@ -150,13 +150,13 @@ func GenerateCastleMoves(moves *MoveList) {
 	if Side == WHITE {
 		if Castle&WK != 0 && // can castle
 			GetBit(Occupancies[BOTH], F1) == 0 && GetBit(Occupancies[BOTH], G1) == 0 && // squares are empty
-			!IsSquareAttacked(E1, BLACK) && !IsSquareAttacked(F1, BLACK) { // king and f1 aren't in check
+			!IsSquareAttacked(E1, BLACK) && !IsSquareAttacked(F1, BLACK) && !IsSquareAttacked(G1, BLACK) { // king, f1, and g1 aren't in check
 			moves.AddMove(EncodeMove(E1, G1, WHITE_KING, 0, 0, 0, 0, 1))
 		}
 
 		if Castle&WQ != 0 && // can castle
 			GetBit(Occupancies[BOTH], D1) == 0 && GetBit(Occupancies[BOTH], C1) == 0 && GetBit(Occupancies[BOTH], B1) == 0 && // squares are empty
-			!IsSquareAttacked(E1, BLACK) && !IsSquareAttacked(D1, BLACK) { // king and d1 aren't in check
+			!IsSquareAttacked(E1, BLACK) && !IsSquareAttacked(D1, BLACK) && !IsSquareAttacked(C1, BLACK) { // king, d1, and c1 aren't in check
 			moves.AddMove(EncodeMove(E1, C1, WHITE_KING, 0, 0, 0, 0, 1))
 		}
 
@@ -166,13 +166,13 @@ func GenerateCastleMoves(moves *MoveList) {
 	// black castling
 	if Castle&BK != 0 && // can castle
 		GetBit(Occupancies[BOTH], F8) == 0 && GetBit(Occupancies[BOTH], G8) == 0 && // squares are empty
-		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(F8, WHITE) { // king and f8 aren't in check
+		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(F8, WHITE) && !IsSquareAttacked(G8, WHITE) { // king, f8, and g8 aren't in check
 		moves.AddMove(EncodeMove(E8, G8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 
 	if Castle&BQ != 0 && // can castle
 		GetBit(Occupancies[BOTH], D8) == 0 && GetBit(Occupancies[BOTH], C8) == 0 && GetBit(Occupancies[BOTH], B8) == 0 && // squares are empty
-		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(D8, WHITE) { // king and d8 aren't in check
+		!IsSquareAttacked(E8, WHITE) && !IsSquareAttacked(D8, WHITE) && !IsSquareAttacked(C8, WHITE) { // king, d8, and c8 aren't in check
 		moves.AddMove(EncodeMove(E8, C8, BLACK_KING, 0, 0, 0, 0, 1))
 	}
 }
