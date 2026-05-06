@@ -47,15 +47,15 @@ func sortMoves(moves *board.MoveList, scores []int) {
 	}
 }
 
-func scoreMove(move int, depth int) int {
+func scoreMove(move int, ply int) int {
 	if board.GetCapture(move) > 0 {
 		return CAPTURE_BONUS + getMVVLVA(move)
 	}
 
-	if killerHeuristic[board.Side][depth][0] == move {
+	if killerHeuristic[board.Side][ply][0] == move {
 		return KILLER_BONUS_1
 	}
-	if killerHeuristic[board.Side][depth][1] == move {
+	if killerHeuristic[board.Side][ply][1] == move {
 		return KILLER_BONUS_2
 	}
 

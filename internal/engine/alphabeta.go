@@ -96,7 +96,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 			continue
 		}
 
-		scores[i] = scoreMove(moves.Moves[i], depth)
+		scores[i] = scoreMove(moves.Moves[i], ply)
 	}
 
 	sortMoves(&moves, scores)
@@ -159,8 +159,8 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 				historyHeuristic[board.Side][board.GetPiece(move)][board.GetTarget(move)] += depth * depth
 			}
 
-			killerHeuristic[board.Side][depth][1] = killerHeuristic[board.Side][depth][0]
-			killerHeuristic[board.Side][depth][0] = move
+			killerHeuristic[board.Side][ply][1] = killerHeuristic[board.Side][ply][0]
+			killerHeuristic[board.Side][ply][0] = move
 
 			break
 		}
