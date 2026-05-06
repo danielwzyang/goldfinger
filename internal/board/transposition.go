@@ -17,7 +17,13 @@ type Node struct {
 
 var TRANSPOSITION_TABLE = map[uint64]Node{}
 
-func AddTTEntry(move int, score int, depth int, nodeType NodeType) {
+func AddTTEntry(move int, score int, depth int, ply int, nodeType NodeType) {
+	// board.MATE is 30000
+	if score > 29000 {
+		score += ply
+	} else if score < -29000 {
+		score -= ply
+	}
 	TRANSPOSITION_TABLE[ZobristHash] = Node{
 		move,
 		score,
@@ -26,7 +32,14 @@ func AddTTEntry(move int, score int, depth int, nodeType NodeType) {
 	}
 }
 
-func GetTTEntry() (Node, bool) {
+func GetTTEntry(ply int) (Node, bool) {
 	val, ok := TRANSPOSITION_TABLE[ZobristHash]
+	if ok {
+		if val.Score > 29000 {
+			val.Score -= ply
+		} else {
+			val.Score += ply
+		}
+	}
 	return val, ok
 }

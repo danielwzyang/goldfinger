@@ -30,7 +30,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	pv := beta-alpha > 1
 
 	// tt entry
-	ttEntry, found := board.GetTTEntry()
+	ttEntry, found := board.GetTTEntry(ply)
 	if !root && !pv && found && ttEntry.Depth >= depth {
 		switch ttEntry.Type {
 		case board.PVNode:
@@ -190,7 +190,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		nodeType = board.PVNode
 	}
 
-	board.AddTTEntry(bestMove, bestScore, depth, nodeType)
+	board.AddTTEntry(bestMove, bestScore, depth, ply, nodeType)
 
 	return bestMove, bestScore
 }
