@@ -44,7 +44,8 @@ func main() {
 				continue
 			}
 
-			board.Init()
+			board.ResetRepetition()
+			board.ResetStateHistory()
 			engine.ResetHeuristics()
 
 			moveIndex := 1
@@ -119,6 +120,10 @@ func main() {
 			timeForMove := getTimeForMove(wtime, btime, winc, binc)
 			if movetime > 0 {
 				timeForMove = movetime
+			}
+
+			if engine.Stop != nil {
+				engine.Stop()
 			}
 
 			go func() {
