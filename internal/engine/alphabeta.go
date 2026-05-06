@@ -70,8 +70,12 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	if depth >= 3 && !root && !inCheck {
 		board.MakeNullMove()
 
-		// reduction factor = 2
-		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-2)
+		// reduction factor is default 2 but 3 when depth >= 6
+		r := 2
+		if depth >= 6 {
+			r = 3
+		}
+		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-r)
 		nullEval *= -1
 
 		board.RestoreState()
