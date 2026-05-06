@@ -84,11 +84,15 @@ func main() {
 			}
 
 		case "go":
-			var wtime, btime, winc, binc int
+			var wtime, btime, winc, binc, movetime int
 
 			// parse time control params
 			for i := 1; i < len(tokens); i++ {
 				switch tokens[i] {
+				case "movetime":
+					if i+1 < len(tokens) {
+						movetime, _ = strconv.Atoi(tokens[i+1])
+					}
 				case "wtime":
 					if i+1 < len(tokens) {
 						wtime, _ = strconv.Atoi(tokens[i+1])
@@ -113,6 +117,9 @@ func main() {
 			}
 
 			timeForMove := getTimeForMove(wtime, btime, winc, binc)
+			if movetime > 0 {
+				timeForMove = movetime
+			}
 
 			go func() {
 				engine.FindMove(timeForMove, true)
