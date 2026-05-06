@@ -33,6 +33,8 @@ func Init() {
 func FindMove(timeForMove int, print bool) SearchResult {
 	start := time.Now()
 
+	ResetHeuristics()
+
 	result := SearchResult{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(timeForMove))
