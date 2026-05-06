@@ -41,8 +41,8 @@ var (
 	mgTable = [2][12][64]int{} // [color][piece][square]
 	egTable = [2][12][64]int{} // [color][piece][square]
 
-	MATE        = 10000
-	LIMIT_SCORE = 20000
+	MATE        = 30000
+	LIMIT_SCORE = 32000
 )
 
 func InitEvalTables() {
