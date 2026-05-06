@@ -22,7 +22,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	root := ply == 1
 
 	// draws
-	if (!root && board.IsRepetition()) || board.Fifty >= 100 {
+	if (!root && board.IsRepetition()) || board.Fifty >= 100 || board.InsufficientMaterial() {
 		return 0, 0
 	}
 
