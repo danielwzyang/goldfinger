@@ -62,7 +62,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// reverse futility pruning
 	futilityMargin := 150 * depth
-	if !root && !pv && !inCheck && (found || board.GetCapture(ttEntry.Move) != 0) && staticEval-futilityMargin >= beta {
+	if !root && !pv && !inCheck && found && board.GetCapture(ttEntry.Move) != 0 && staticEval-futilityMargin >= beta {
 		return 0, staticEval
 	}
 
