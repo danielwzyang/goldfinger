@@ -16,6 +16,7 @@ func GenerateAllCaptures(moves *MoveList) {
 	moves.Count = 0
 
 	GeneratePawnCaptures(moves)
+	GeneratePawnQuietPromotions(moves)
 	GenerateKnightCaptures(moves)
 	GenerateBishopCaptures(moves)
 	GenerateRookCaptures(moves)
@@ -430,6 +431,39 @@ func GeneratePawnCaptures(moves *MoveList) {
 			}
 		}
 
+		PopBit(&bitboard, source)
+	}
+}
+
+func GeneratePawnQuietPromotions(moves *MoveList) {
+	if Side == WHITE {
+		bitboard := Bitboards[WHITE_PAWN]
+		for bitboard > 0 {
+			source := LS1B(bitboard)
+			target := source + 8
+			// if on second to last rank and square in front is empty
+			if source >= A7 && source <= H7 && GetBit(Occupancies[BOTH], target) == 0 {
+				moves.AddMove(EncodeMove(source, target, WHITE_PAWN, WHITE_KNIGHT, 0, 0, 0, 0))
+				moves.AddMove(EncodeMove(source, target, WHITE_PAWN, WHITE_BISHOP, 0, 0, 0, 0))
+				moves.AddMove(EncodeMove(source, target, WHITE_PAWN, WHITE_ROOK, 0, 0, 0, 0))
+				moves.AddMove(EncodeMove(source, target, WHITE_PAWN, WHITE_QUEEN, 0, 0, 0, 0))
+			}
+			PopBit(&bitboard, source)
+		}
+		return
+	}
+
+	bitboard := Bitboards[BLACK_PAWN]
+	for bitboard > 0 {
+		source := LS1B(bitboard)
+		target := source - 8
+		// same as white logic
+		if source >= A2 && source <= H2 && GetBit(Occupancies[BOTH], target) == 0 {
+			moves.AddMove(EncodeMove(source, target, BLACK_PAWN, BLACK_KNIGHT, 0, 0, 0, 0))
+			moves.AddMove(EncodeMove(source, target, BLACK_PAWN, BLACK_BISHOP, 0, 0, 0, 0))
+			moves.AddMove(EncodeMove(source, target, BLACK_PAWN, BLACK_ROOK, 0, 0, 0, 0))
+			moves.AddMove(EncodeMove(source, target, BLACK_PAWN, BLACK_QUEEN, 0, 0, 0, 0))
+		}
 		PopBit(&bitboard, source)
 	}
 }
