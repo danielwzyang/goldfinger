@@ -37,7 +37,7 @@ func GetTTEntry(ply int) (Node, bool) {
 	if ok {
 		if val.Score > 29000 {
 			val.Score -= ply
-		} else {
+		} else if val.Score < -29000 {
 			val.Score += ply
 		}
 	}
