@@ -73,11 +73,17 @@ func FindMove(timeForMove int, print bool) SearchResult {
 			alpha = -board.LIMIT_SCORE
 			beta = board.LIMIT_SCORE
 			move, score = alphaBeta(ctx, alpha, beta, depth)
+
+			select {
+			case <- ctx.Done():
+				return result
+			default:
+			}
 		}
 
 		// narrow window
 		alpha = max(-board.LIMIT_SCORE, score - 50)
-		beta = min(board.LIMIT_SCORE, score + 100)
+		beta = min(board.LIMIT_SCORE, score + 50)
 
 		// ignore search if time ran out midway
 		select {
