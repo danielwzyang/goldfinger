@@ -46,12 +46,6 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		}
 	}
 
-	// internal iterative reduction
-	// no tt entry so reduce depth by 1 to save time for next iteration
-	if !found && depth >= 4 {
-		depth--
-	}
-
 	inCheck := board.InCheck()
 
 	// increase depth in check
