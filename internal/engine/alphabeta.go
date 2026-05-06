@@ -23,7 +23,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// draws
 	if (!root && board.IsRepetition()) || board.Fifty >= 100 {
-		return 0, -25 // contempt
+		return 0, -25 - board.Fifty / 2 // contempt
 	}
 
 	// pv node
@@ -31,7 +31,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	// tt entry
 	ttEntry, found := board.GetTTEntry(ply)
-	if !root && !pv && found && ttEntry.Depth >= depth {
+	if !root && !pv && found && ttEntry.Depth >= depth && board.Fifty < 90 {
 		switch ttEntry.Type {
 		case board.PVNode:
 			return ttEntry.Move, ttEntry.Score
@@ -67,7 +67,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	}
 
 	// null move pruning
-	if depth >= 3 && ply != 0 && !inCheck {
+	if depth >= 3 && !root && !inCheck {
 		board.MakeNullMove()
 
 		// reduction factor = 2
