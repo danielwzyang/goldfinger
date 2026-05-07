@@ -5,7 +5,7 @@ import "fmt"
 const ALL_MOVES = 0
 const ONLY_CAPTURES = 1
 
-var lastCapture = -1
+var LastCapture = -1
 
 type MoveList struct {
 	Moves [256]int
@@ -79,62 +79,6 @@ func GetPieceOnSquare(square int) int {
 	return -1
 }
 
-func GetSmallestAttacker(square int) (int, int) {
-	// pawn attacks
-	if Side == WHITE {
-		attackers := PAWN_ATTACKS[BLACK][square] & Bitboards[WHITE_PAWN]
-		if attackers != 0 {
-			return WHITE_PAWN, LS1B(attackers)
-		}
-	} else {
-		attackers := PAWN_ATTACKS[WHITE][square] & Bitboards[BLACK_PAWN]
-		if attackers != 0 {
-			return BLACK_PAWN, LS1B(attackers)
-		}
-	}
-
-	// knight attacks
-	knights := KNIGHT_ATTACKS[square] & Bitboards[Side*6+1]
-	if knights != 0 {
-		return Side*6 + 1, LS1B(knights)
-	}
-
-	// bishop/queen attacks
-	bishops := GetBishopAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+2] | Bitboards[Side*6+4])
-	if bishops != 0 {
-		bishopsOnly := Bitboards[Side*6+2] & bishops
-		if bishopsOnly != 0 {
-			return Side*6 + WHITE_BISHOP, LS1B(bishopsOnly)
-		}
-		return Side*6 + WHITE_QUEEN, LS1B(bishops)
-	}
-
-	// rook/queen attacks
-	rooks := GetRookAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+3] | Bitboards[Side*6+4])
-	if rooks != 0 {
-		rooksOnly := Bitboards[Side*6+3] & rooks
-		if rooksOnly != 0 {
-			return Side*6 + WHITE_ROOK, LS1B(rooksOnly)
-		}
-		return Side*6 + 4, LS1B(rooks)
-	}
-
-	// king attacks
-	kings := KING_ATTACKS[square] & Bitboards[Side*6+5]
-	if kings != 0 {
-		return Side*6 + WHITE_KING, LS1B(kings)
-	}
-	return -1, -1
-}
-
-func LastCapturedValue() int {
-	values := [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000}
-	if lastCapture >= 0 && lastCapture < 12 {
-		return values[lastCapture]
-	}
-	return 0
-}
-
 // returns true if legal, false if not
 func MakeMove(move int) bool {
 	SaveState()
@@ -184,12 +128,12 @@ func MakeMove(move int) bool {
 			if GetBit(Bitboards[i], target) != 0 {
 				PopBit(&Bitboards[i], target)
 				ZobristHash ^= PIECE_HASH[i][target]
-				lastCapture = i // Track the captured piece
+				LastCapture = i
 				break
 			}
 		}
 	} else {
-		lastCapture = -1
+		LastCapture = -1
 	}
 
 	if promotion > 0 {

@@ -14,6 +14,7 @@ type State struct {
 	ZobristHash     uint64
 	Fifty           int
 	RepetitionIndex int
+	LastCapture		int
 }
 
 func ResetStateHistory() {
@@ -31,6 +32,7 @@ func SaveState() {
 		ZobristHash,
 		Fifty,
 		RepetitionIndex,
+		LastCapture,
 	}
 
 	StateSize++
@@ -47,6 +49,7 @@ func RestoreState() {
 	ZobristHash = state.ZobristHash
 	Fifty = state.Fifty
 	RepetitionIndex = state.RepetitionIndex
+	LastCapture = state.LastCapture
 
 	StateSize--
 }
