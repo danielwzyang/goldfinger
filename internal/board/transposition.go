@@ -17,6 +17,10 @@ type Node struct {
 
 var TRANSPOSITION_TABLE = map[uint64]Node{}
 
+func ResetTT() {
+	TRANSPOSITION_TABLE = map[uint64]Node{};
+}
+
 func AddTTEntry(move int, score int, depth int, ply int, nodeType NodeType) {
 	// board.MATE is 30000
 	if score > 29000 {

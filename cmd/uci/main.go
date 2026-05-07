@@ -37,6 +37,7 @@ func main() {
 		case "ucinewgame":
 			board.Init()
 			board.ParseFEN(board.DEFAULT_BOARD)
+			board.ResetTT()
 			engine.ResetHeuristics()
 
 		case "position":
