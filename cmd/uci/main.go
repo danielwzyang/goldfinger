@@ -7,10 +7,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
 )
+
+var wg sync.WaitGroup
 
 func main() {
 	board.Init()
@@ -32,15 +35,25 @@ func main() {
 			fmt.Println("uciok")
 
 		case "isready":
+			wg.Wait()
 			fmt.Println("readyok")
 
 		case "ucinewgame":
+			if engine.Stop != nil {
+				engine.Stop()
+			}
+			wg.Wait()
 			board.Init()
 			board.ParseFEN(board.DEFAULT_BOARD)
 			board.ResetTT()
 			engine.ResetHeuristics()
 
 		case "position":
+			if engine.Stop != nil {
+				engine.Stop()
+			}
+			wg.Wait()
+
 			if len(tokens) < 2 {
 				continue
 			}
@@ -86,6 +99,11 @@ func main() {
 			}
 
 		case "go":
+			if engine.Stop != nil {
+				engine.Stop()
+			}
+			wg.Wait()
+
 			var wtime, btime, winc, binc, movetime int
 
 			// parse time control params
@@ -123,19 +141,22 @@ func main() {
 				timeForMove = movetime
 			}
 
-			if engine.Stop != nil {
-				engine.Stop()
-			}
-
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				engine.FindMove(timeForMove, true)
 			}()
 		case "stop":
 			if engine.Stop != nil {
 				engine.Stop()
 			}
+			wg.Wait()
 
 		case "quit":
+			if engine.Stop != nil {
+				engine.Stop()
+			}
+			wg.Wait()
 			return
 		}
 	}
