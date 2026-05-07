@@ -80,6 +80,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 
 		board.RestoreState()
 
+		if ctx.Err() != nil {
+			return 0, 0
+		}
+
 		if nullEval >= beta {
 			return 0, beta
 		}
@@ -148,6 +152,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 		}
 
 		board.RestoreState()
+
+		if ctx.Err() != nil {
+			return bestMove, bestScore
+		}
 
 		if score > bestScore {
 			bestScore = score
