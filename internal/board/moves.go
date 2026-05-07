@@ -129,11 +129,8 @@ func GetSmallestAttacker(square int) (int, int) {
 
 func LastCapturedValue() int {
 	values := [12]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000}
-	prevSide := Side ^ 1
-	for i := prevSide * 6; i < prevSide*6+6; i++ {
-		if lastCapture == i {
-			return values[i]
-		}
+	if lastCapture >= 0 && lastCapture < 12 {
+		return values[lastCapture]
 	}
 	return 0
 }
