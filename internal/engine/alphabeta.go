@@ -34,14 +34,14 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 	if !root && !pv && found && ttEntry.Depth >= depth && board.Fifty < 90 {
 		switch ttEntry.Type {
 		case board.PVNode:
-			return ttEntry.Move, ttEntry.Score
+			return 0, ttEntry.Score
 		case board.CutNode:
 			if ttEntry.Score >= beta {
-				return ttEntry.Move, ttEntry.Score
+				return 0, ttEntry.Score
 			}
 		case board.AllNode:
 			if ttEntry.Score <= alpha {
-				return ttEntry.Move, ttEntry.Score
+				return 0, ttEntry.Score
 			}
 		}
 	}
