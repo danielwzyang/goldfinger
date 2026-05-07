@@ -45,6 +45,8 @@ func main() {
 			wg.Wait()
 			board.Init()
 			board.ParseFEN(board.DEFAULT_BOARD)
+			board.ResetRepetition()
+			board.ResetStateHistory()
 			board.ResetTT()
 			engine.ResetHeuristics()
 
