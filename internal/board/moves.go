@@ -102,21 +102,21 @@ func GetSmallestAttacker(square int) (int, int) {
 	// bishop/queen attacks
 	bishops := GetBishopAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+2] | Bitboards[Side*6+4])
 	if bishops != 0 {
-		piece := Side*6 + WHITE_BISHOP
-		if Bitboards[Side*6+WHITE_QUEEN]&bishops != 0 {
-			piece = Side*6 + WHITE_QUEEN
+		bishopsOnly := Bitboards[Side*6+2] & bishops
+		if bishopsOnly != 0 {
+			return Side*6 + WHITE_BISHOP, LS1B(bishopsOnly)
 		}
-		return piece, LS1B(bishops)
+		return Side*6 + WHITE_QUEEN, LS1B(bishops)
 	}
 
 	// rook/queen attacks
 	rooks := GetRookAttacks(square, Occupancies[BOTH]) & (Bitboards[Side*6+3] | Bitboards[Side*6+4])
 	if rooks != 0 {
-		piece := Side*6 + WHITE_ROOK
-		if Bitboards[Side*6+WHITE_QUEEN]&rooks != 0 {
-			piece = Side*6 + 4
+		rooksOnly := Bitboards[Side*6+3] & rooks
+		if rooksOnly != 0 {
+			return Side*6 + WHITE_ROOK, LS1B(rooksOnly)
 		}
-		return piece, LS1B(rooks)
+		return Side*6 + 4, LS1B(rooks)
 	}
 
 	// king attacks
