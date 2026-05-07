@@ -66,13 +66,13 @@ func FindMove(timeForMove int, print bool) SearchResult {
 	nodes = 0
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
-		move, score := alphaBeta(ctx, alpha, beta, depth)
+		move, score := alphaBeta(ctx, alpha, beta, depth, true)
 
 		// out of window
 		if score <= alpha || score >= beta {
 			alpha = -board.LIMIT_SCORE
 			beta = board.LIMIT_SCORE
-			move, score = alphaBeta(ctx, alpha, beta, depth)
+			move, score = alphaBeta(ctx, alpha, beta, depth, true)
 
 			select {
 			case <- ctx.Done():

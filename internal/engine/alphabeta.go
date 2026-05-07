@@ -7,7 +7,7 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
-func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
+func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int, int) {
 	select {
 	case <-ctx.Done():
 		return 0, 0
@@ -61,13 +61,12 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 	staticEval := board.Evaluate()
 
 	// reverse futility pruning
-	futilityMargin := 150 * depth
-	if !root && !pv && !inCheck && found && board.GetCapture(ttEntry.Move) != 0 && staticEval-futilityMargin >= beta {
+	if !root && !pv && !inCheck && depth <= 8 && staticEval-100*depth >= beta {
 		return 0, staticEval
 	}
 
 	// null move pruning
-	if depth >= 3 && !root && !inCheck {
+	if allowNull && depth >= 3 && !root && !inCheck && hasMajorOrMinorPiece() {
 		board.MakeNullMove()
 
 		// reduction factor is default 2 but 3 when depth >= 6
@@ -75,7 +74,8 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		if depth >= 6 {
 			r = 3
 		}
-		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-r)
+		// cannot make null moves in a row
+		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-r, false)
 		nullEval *= -1
 
 		board.RestoreState()
@@ -110,7 +110,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		move := moves.Moves[moveCount]
 
 		// late move pruning
-		if depth <= 4 && !pv && !inCheck && moveCount > 3+depth*depth && board.GetCapture(move) == 0 {
+		if depth <= 4 && !pv && !inCheck &&
+			moveCount > 3+depth*depth &&
+			board.GetCapture(move) == 0 &&
+			board.GetPromotion(move) == 0 {
 			continue
 		}
 
@@ -123,26 +126,23 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 		var score int
 
 		if legalMoves == 1 {
-			_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
+			_, score = alphaBeta(ctx, -beta, -alpha, depth-1, true)
 			score = -score
 		} else {
 			// late move reduction
 			reduction := 0
 
-			if depth < 3 || legalMoves <= 4 || inCheck {
-				reduction = 0
-			} else if board.GetPromotion(move) > 0 || board.GetCapture(move) > 0 {
-				reduction = int(0.7 + 0.3*math.Log1p(float64(depth)) + 0.3*math.Log1p(float64(moveCount)))
-			} else {
+			if depth >= 3 && legalMoves > 4 && !inCheck &&
+			board.GetCapture(move) == 0 && board.GetPromotion(move) == 0 {
 				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
 			}
 
-			_, score = alphaBeta(ctx, -alpha-1, -alpha, depth-1-reduction)
+			_, score = alphaBeta(ctx, -alpha-1, -alpha, depth-1-reduction, true)
 			score = -score
 
 			// principal variation search
 			if score > alpha && score < beta {
-				_, score = alphaBeta(ctx, -beta, -alpha, depth-1)
+				_, score = alphaBeta(ctx, -beta, -alpha, depth-1, true)
 				score = -score
 			}
 		}
@@ -194,3 +194,14 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int) (int, int) {
 
 	return bestMove, bestScore
 }
+
+func hasMajorOrMinorPiece() bool {
+	side := board.Side
+	for p := side*6 + 1; p <= side*6+4; p++ {
+		if board.Bitboards[p] != 0 {
+			return true
+		}
+	}
+	return false
+}
+
