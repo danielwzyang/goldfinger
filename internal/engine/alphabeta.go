@@ -31,8 +31,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 	// pv node
 	pv := beta-alpha > 1
 
+	hash := board.ZobristHash
+
 	// tt entry
-	ttEntry, found := board.GetTTEntry(ply)
+	ttEntry, found := board.GetTTEntry(hash, ply)
 	if !root && !pv && found && ttEntry.Depth >= depth && board.Fifty < 90 {
 		switch ttEntry.Type {
 		case board.PVNode:
@@ -191,7 +193,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 	}
 
 	// update tt
-	nodeType := board.AllNode
+	nodeType := board.PVNode
 	if bestScore <= originalAlpha {
 		nodeType = board.AllNode
 	} else if bestScore >= beta {
@@ -200,7 +202,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 		nodeType = board.PVNode
 	}
 
-	board.AddTTEntry(bestMove, bestScore, depth, ply, nodeType)
+	board.AddTTEntry(hash, bestMove, bestScore, depth, ply, nodeType)
 
 	return bestMove, bestScore
 }

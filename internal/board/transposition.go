@@ -1,49 +1,67 @@
 package board
 
-type NodeType int
+type NodeType uint8
 
 const (
-	PVNode NodeType = iota
-	AllNode
-	CutNode
+    PVNode NodeType = iota
+    AllNode
+    CutNode
+    NoneNode
 )
 
-type Node struct {
-	Move  int
-	Score int
-	Depth int
-	Type  NodeType
+type TTEntry struct {
+    Key   uint64
+    Move  int
+    Score int    
+    Depth int     
+    Type  NodeType 
 }
 
-var TRANSPOSITION_TABLE = map[uint64]Node{}
+const TT_SIZE = 1 << 20 
+const TT_MASK = TT_SIZE - 1
+
+var TRANSPOSITION_TABLE [TT_SIZE]TTEntry
 
 func ResetTT() {
-	TRANSPOSITION_TABLE = map[uint64]Node{};
+    TRANSPOSITION_TABLE = [TT_SIZE]TTEntry{}
 }
 
-func AddTTEntry(move int, score int, depth int, ply int, nodeType NodeType) {
+func AddTTEntry(hash uint64, move int, score int, depth int, ply int, nodeType NodeType) {
 	// board.MATE is 30000
-	if score > 29000 {
-		score -= ply
-	} else if score < -29000 {
-		score += ply
-	}
-	TRANSPOSITION_TABLE[ZobristHash] = Node{
-		move,
-		score,
-		depth,
-		nodeType,
-	}
+    if score > 29000 {
+        score += ply
+    } else if score < -29000 {
+        score -= ply
+    }
+
+	// index with mask is faster than mod
+    index := hash & TT_MASK
+    entry := &TRANSPOSITION_TABLE[index]
+    
+	// only overwrite if new search is deeper
+    if entry.Key == 0 || depth >= entry.Depth {
+        entry.Key = hash
+        entry.Move = move
+        entry.Score = score
+        entry.Depth = depth
+        entry.Type = nodeType
+    }
 }
 
-func GetTTEntry(ply int) (Node, bool) {
-	val, ok := TRANSPOSITION_TABLE[ZobristHash]
-	if ok {
-		if val.Score > 29000 {
-			val.Score += ply
-		} else if val.Score < -29000 {
-			val.Score -= ply
-		}
-	}
-	return val, ok
+func GetTTEntry(hash uint64, ply int) (TTEntry, bool) {
+    index := hash & TT_MASK
+    entry := TRANSPOSITION_TABLE[index]
+
+    if entry.Key == hash {
+        score := entry.Score
+        if score > 29000 {
+            score -= ply
+        } else if score < -29000 {
+            score += ply
+        }
+        entry.Score = score
+        return entry, true
+    }
+
+    return TTEntry{}, false
 }
