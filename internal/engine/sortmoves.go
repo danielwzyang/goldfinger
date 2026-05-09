@@ -30,21 +30,18 @@ const (
 	KILLER_BONUS_2 = 8000
 )
 
-// insertion sort
-func sortMoves(moves *board.MoveList, scores []int) {
-	for i := 1; i < moves.Count; i++ {
-		keyScore := scores[i]
-		keyMove := moves.Moves[i]
-		j := i - 1
-
-		for j >= 0 && scores[j] < keyScore {
-			scores[j+1] = scores[j]
-			moves.Moves[j+1] = moves.Moves[j]
-			j--
+// instead of doing a full insertion sort like i previously did
+// only swap one at a time
+// beta cutoffs can reduce it from worst case O(n^2)
+func swapBest(moves *board.MoveList, scores []int, start int) {
+	best := start
+	for i := start + 1; i < moves.Count; i++ {
+		if scores[i] > scores[best] {
+			best = i
 		}
-		scores[j+1] = keyScore
-		moves.Moves[j+1] = keyMove
 	}
+	scores[start], scores[best] = scores[best], scores[start]
+	moves.Moves[start], moves.Moves[best] = moves.Moves[best], moves.Moves[start]
 }
 
 func scoreMove(move int, ply int) int {

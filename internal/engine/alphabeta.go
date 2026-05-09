@@ -110,10 +110,10 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 		scores[i] = scoreMove(moves.Moves[i], ply)
 	}
 
-	sortMoves(&moves, scores)
 	legalMoves := 0
 
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		swapBest(&moves, scores, moveCount)
 		move := moves.Moves[moveCount]
 
 		// late move pruning

@@ -37,9 +37,8 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 		scores[i] = getMVVLVA(moves.Moves[i])
 	}
 
-	sortMoves(&moves, scores)
-
 	for moveCount := 0; moveCount < moves.Count; moveCount++ {
+		swapBest(&moves, scores, moveCount)
 		move := moves.Moves[moveCount]
 
 		victim := board.GetPieceOnSquare(board.GetTarget(move))
