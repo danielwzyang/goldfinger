@@ -10,13 +10,12 @@ import (
 var scoresBuffer [256][256]int
 
 func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int, int) {
-	select {
-	case <-ctx.Done():
+	nodes++
+
+	if nodes & 2047 == 0 && stopped {
 		return 0, 0
-	default:
 	}
 
-	nodes++
 	ply++
 	defer func() { ply-- }()
 

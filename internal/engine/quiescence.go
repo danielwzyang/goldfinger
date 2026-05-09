@@ -13,13 +13,11 @@ var SEE_PIECE_VALUES = [13]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 50
 var qScores [256]int
 
 func quiesce(ctx context.Context, alpha, beta int) int {
-	select {
-	case <-ctx.Done():
-		return 0
-	default:
-	}
-
 	nodes++
+
+	if nodes & 2047 == 0 && stopped {
+		return 0
+	}
 
 	standpat := board.Evaluate()
 

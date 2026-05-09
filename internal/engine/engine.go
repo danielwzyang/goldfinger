@@ -22,6 +22,7 @@ type SearchResult struct {
 var (
 	ply   int
 	nodes int
+	stopped bool
 	Stop  context.CancelFunc
 )
 
@@ -65,6 +66,9 @@ func FindMove(timeForMove int, print bool) SearchResult {
 
 	nodes = 0
 	board.ResetStateHistory()
+
+	stopped = false
+	go func() { <-ctx.Done(); stopped = true }()
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
 		ply = 0

@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"time"
+	"os"
+	"runtime/pprof"
 
 	"danielyang.cc/chess/internal/board"
 	"danielyang.cc/chess/internal/engine"
@@ -11,6 +13,10 @@ import (
 )
 
 func main() {
+	f, _ := os.Create("cpu.prof")
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
+
 	// grab flags
 	fen := flag.String("fen", board.DEFAULT_BOARD, "Board state in FEN format")
 	timeForMove := flag.Int("time", 1000, "Time for move in milliseconds. Search may exceed this time but it will not iteratively search deeper once time is up.")
@@ -89,10 +95,8 @@ func main() {
 	fmt.Printf("Finished in %d plies.\n", engineMoves)
 
 	fmt.Println()
-	fmt.Println("Stopping in 10 seconds..")
-	start := time.Now()
-	for time.Since(start).Seconds() < 10 {
-	}
+	fmt.Println("Stopping in 5 seconds..")
+	time.Sleep(5 * time.Second)
 }
 
 func over() bool {
