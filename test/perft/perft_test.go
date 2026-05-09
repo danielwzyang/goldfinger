@@ -52,7 +52,7 @@ func Perft(depth int) int {
 		}
 
 		nodes += Perft(depth - 1)
-		board.RestoreState()
+		board.UndoMove(move)
 	}
 
 	return nodes

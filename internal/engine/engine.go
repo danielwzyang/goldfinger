@@ -64,14 +64,18 @@ func FindMove(timeForMove int, print bool) SearchResult {
 	beta := board.LIMIT_SCORE
 
 	nodes = 0
+	board.ResetStateHistory()
 
 	for depth := 1; depth <= maxSearchDepth; depth++ {
+		ply = 0
+
 		move, score := alphaBeta(ctx, alpha, beta, depth, true)
 
 		// out of window
 		if score <= alpha || score >= beta {
 			alpha = -board.LIMIT_SCORE
 			beta = board.LIMIT_SCORE
+			ply = 0
 			move, score = alphaBeta(ctx, alpha, beta, depth, true)
 
 			select {

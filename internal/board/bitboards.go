@@ -28,13 +28,7 @@ func SwapBit(bitboard *uint64, index1 int, index2 int) {
 }
 
 func LS1B(bitboard uint64) int {
-	for i := 0; i < 64; i++ {
-		if GetBit(bitboard, i) == 1 {
-			return i
-		}
-	}
-
-	return -1
+	return bits.TrailingZeros64(bitboard)
 }
 
 func PrintBitboard(bitboard uint64) {

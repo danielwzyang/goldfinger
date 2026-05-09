@@ -1,55 +1,31 @@
 package board
 
-// can be optimized by keeping track of moves but im a bit lazy for now
-
-var BoardStates = [4096]State{}
-var StateSize = 0
-
 type State struct {
-	Bitboards       [12]uint64
-	Occupancies     [3]uint64
-	Side            int
-	EnPassant       int
-	Castle          int
+	EnPassant       int8
+	Castle          uint8
 	ZobristHash     uint64
-	Fifty           int
-	RepetitionIndex int
-	LastCapture		int
+	Fifty           uint8
+	RepetitionIndex int16
+	LastCapture		int8
 }
+
+var StateStack [4096]State
+var StateSize = 0
 
 func ResetStateHistory() {
 	StateSize = 0
-	BoardStates[0] = State{}
 }
 
 func SaveState() {
-	BoardStates[StateSize] = State{
-		Bitboards,
-		Occupancies,
-		Side,
-		EnPassant,
-		Castle,
+	StateStack[StateSize] = State{
+		int8(EnPassant),
+		uint8(Castle),
 		ZobristHash,
-		Fifty,
-		RepetitionIndex,
-		LastCapture,
+		uint8(Fifty),
+		int16(RepetitionIndex),
+		int8(LastCapture),
 	}
 
 	StateSize++
 }
 
-func RestoreState() {
-	state := BoardStates[StateSize-1]
-
-	Bitboards = state.Bitboards
-	Occupancies = state.Occupancies
-	Side = state.Side
-	EnPassant = state.EnPassant
-	Castle = state.Castle
-	ZobristHash = state.ZobristHash
-	Fifty = state.Fifty
-	RepetitionIndex = state.RepetitionIndex
-	LastCapture = state.LastCapture
-
-	StateSize--
-}

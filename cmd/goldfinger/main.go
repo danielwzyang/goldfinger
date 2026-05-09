@@ -37,8 +37,6 @@ func main() {
 	gui.NewGame()
 	go gui.Run()
 
-	time.Sleep(5 * time.Second)
-
 	// game loop
 	fmt.Println("──────────────────────────────────────────────────────")
 	fmt.Println("Goldfinger | danielyang.cc")
@@ -154,16 +152,14 @@ func over() bool {
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
 
-	legal := 0
-
-	for _, move := range moves.Moves {
-		if board.MakeMove(move) {
-			legal++
-			board.RestoreState()
+	for i := 0; i < moves.Count; i++ {
+		if board.MakeMove(moves.Moves[i]) {
+			board.UndoMove(moves.Moves[i])
+			return false
 		}
 	}
 
-	return legal == 0
+	return true
 }
 
 func repetition() bool {

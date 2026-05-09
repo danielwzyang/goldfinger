@@ -129,6 +129,7 @@ func MakeMove(move int) bool {
 				PopBit(&Bitboards[i], target)
 				ZobristHash ^= PIECE_HASH[i][target]
 				LastCapture = i
+				StateStack[StateSize-1].LastCapture = int8(i)
 				break
 			}
 		}
@@ -211,21 +212,45 @@ func MakeMove(move int) bool {
 
 	ZobristHash ^= CASTLE_HASH[Castle]
 
-	// reset occupancies
-	Occupancies = [3]uint64{0, 0, 0}
+	// update occupancies in O(1)
+	sourceBit := uint64(1) << source
+	targetBit := uint64(1) << target
+	Occupancies[Side] = (Occupancies[Side] & ^sourceBit) | targetBit
+	Occupancies[BOTH] = (Occupancies[BOTH] & ^sourceBit) | targetBit
 
-	// update white occupancies
-	for i := WHITE_PAWN; i <= WHITE_KING; i++ {
-		Occupancies[WHITE] |= Bitboards[i]
+	if capture && !enpassant {
+		Occupancies[Side^1] &= ^targetBit
 	}
 
-	// update black occupancies
-	for i := BLACK_PAWN; i <= BLACK_KING; i++ {
-		Occupancies[BLACK] |= Bitboards[i]
+	if enpassant {
+		var enPassantSquare int
+		if Side == WHITE {
+			enPassantSquare = target - 8
+		} else {
+			enPassantSquare = target + 8
+		}
+		enPassantBit := uint64(1) << enPassantSquare
+		Occupancies[Side^1] &= ^enPassantBit
+		Occupancies[BOTH] &= ^enPassantBit
 	}
 
-	// update both sides occupancies
-	Occupancies[BOTH] = Occupancies[WHITE] | Occupancies[BLACK]
+	if castling {
+		var rookSource, rookTarget int
+		switch target {
+		case G1:
+			rookSource, rookTarget = H1, F1
+		case C1:
+			rookSource, rookTarget = A1, D1
+		case G8:
+			rookSource, rookTarget = H8, F8
+		case C8:
+			rookSource, rookTarget = A8, D8
+		}
+		rookSourceBit := uint64(1) << rookSource
+		rookTargetBit := uint64(1) << rookTarget
+		Occupancies[Side] = (Occupancies[Side] & ^rookSourceBit) | rookTargetBit
+		Occupancies[BOTH] = (Occupancies[BOTH] & ^rookSourceBit) | rookTargetBit
+	}
 
 	// change side
 	Side ^= 1
@@ -243,7 +268,7 @@ func MakeMove(move int) bool {
 
 	// illegal move, return false
 	if IsSquareAttacked(king, Side) {
-		RestoreState()
+		UndoMove(move)
 		return false
 	}
 
@@ -264,6 +289,119 @@ func MakeNullMove() {
 
 	Side ^= 1
 	ZobristHash ^= SIDE_HASH
+}
+
+func UndoMove(move int) {
+	StateSize--
+	state := StateStack[StateSize]
+	Side ^= 1
+
+	source := GetSource(move)
+	target := GetTarget(move)
+	piece := GetPiece(move)
+	promotion := GetPromotion(move)
+	capture := GetCapture(move) > 0
+	enpassant := GetEnPassant(move) > 0
+	castling := GetCastling(move) > 0
+
+	// undo promotion
+	if promotion > 0 {
+		PopBit(&Bitboards[promotion], target)
+		SetBit(&Bitboards[piece], target)
+	}
+
+	// move piece back
+	PopBit(&Bitboards[piece], target)
+	SetBit(&Bitboards[piece], source)
+
+	// restore captured piece
+	if capture && !enpassant {
+		SetBit(&Bitboards[state.LastCapture], target)
+	}
+
+	// restore enpassant piece
+	if enpassant {
+		if Side == WHITE {
+			SetBit(&Bitboards[BLACK_PAWN], target-8)
+		} else {
+			SetBit(&Bitboards[WHITE_PAWN], target+8)
+		}
+	}
+
+	// reverse rook castle
+	if castling {
+		switch target {
+		case G1:
+			PopBit(&Bitboards[WHITE_ROOK], F1)
+			SetBit(&Bitboards[WHITE_ROOK], H1)
+		case C1:
+			PopBit(&Bitboards[WHITE_ROOK], D1)
+			SetBit(&Bitboards[WHITE_ROOK], A1)
+		case G8:
+			PopBit(&Bitboards[BLACK_ROOK], F8)
+			SetBit(&Bitboards[BLACK_ROOK], H8)
+		case C8:
+			PopBit(&Bitboards[BLACK_ROOK], D8)
+			SetBit(&Bitboards[BLACK_ROOK], A8)
+		}
+	}
+
+	EnPassant = int(state.EnPassant)
+	Castle = int(state.Castle)
+	ZobristHash = state.ZobristHash
+	Fifty = int(state.Fifty)
+	RepetitionIndex = int(state.RepetitionIndex)
+
+	// update occupancies in O(1)
+	sourceBit := uint64(1) << source
+	targetBit := uint64(1) << target
+	Occupancies[Side] = (Occupancies[Side] & ^targetBit) | sourceBit
+	Occupancies[BOTH] = (Occupancies[BOTH] & ^targetBit) | sourceBit
+
+	if capture && !enpassant {
+		Occupancies[Side^1] |= targetBit
+		Occupancies[BOTH] |= targetBit
+	}
+
+	if enpassant {
+		var enPassantSquare int
+		if Side == WHITE {
+			enPassantSquare = target - 8
+		} else {
+			enPassantSquare = target + 8
+		}
+		enPassantBit := uint64(1) << enPassantSquare
+		Occupancies[Side^1] |= enPassantBit
+		Occupancies[BOTH] |= enPassantBit
+	}
+
+	if castling {
+		var rookSource, rookTarget int
+		switch target {
+		case G1:
+			rookSource, rookTarget = H1, F1
+		case C1:
+			rookSource, rookTarget = A1, D1
+		case G8:
+			rookSource, rookTarget = H8, F8
+		case C8:
+			rookSource, rookTarget = A8, D8
+		}
+		rookSourceBit := uint64(1) << rookSource
+		rookTargetBit := uint64(1) << rookTarget
+		Occupancies[Side] = (Occupancies[Side] & ^rookTargetBit) | rookSourceBit
+		Occupancies[BOTH] = (Occupancies[BOTH] & ^rookTargetBit) | rookSourceBit
+	}
+}
+
+func UndoNullMove() {
+	StateSize--
+	state := StateStack[StateSize]
+
+	EnPassant = int(state.EnPassant)
+	Side ^= 1
+	ZobristHash = state.ZobristHash
+	RepetitionIndex = int(state.RepetitionIndex)
 }
 
 func StringToPos(input string) int {

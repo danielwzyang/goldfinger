@@ -10,6 +10,8 @@ const deltaMargin = 1050
 
 var SEE_PIECE_VALUES = [13]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000, 0}
 
+var qScores [256]int
+
 func quiesce(ctx context.Context, alpha, beta int) int {
 	select {
 	case <-ctx.Done():
@@ -32,7 +34,7 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 	moves := board.MoveList{}
 	board.GenerateAllCaptures(&moves)
 
-	scores := make([]int, moves.Count)
+	scores := qScores[:moves.Count]
 	for i := 0; i < moves.Count; i++ {
 		scores[i] = getMVVLVA(moves.Moves[i])
 	}
@@ -73,7 +75,7 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 
 		score := -quiesce(ctx, -beta, -alpha)
 
-		board.RestoreState()
+		board.UndoMove(move)
 
 		if score > alpha {
 			alpha = score

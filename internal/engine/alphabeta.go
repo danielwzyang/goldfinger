@@ -7,6 +7,8 @@ import (
 	"danielyang.cc/chess/internal/board"
 )
 
+var scoresBuffer [256][256]int
+
 func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int, int) {
 	select {
 	case <-ctx.Done():
@@ -78,7 +80,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 		_, nullEval := alphaBeta(ctx, -beta, -beta+1, depth-1-r, false)
 		nullEval *= -1
 
-		board.RestoreState()
+		board.UndoNullMove()
 
 		if ctx.Err() != nil {
 			return 0, 0
@@ -95,7 +97,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 
 	moves := board.MoveList{}
 	board.GenerateAllMoves(&moves)
-	scores := make([]int, moves.Count)
+	scores := scoresBuffer[ply][:moves.Count]
 
 	for i := 0; i < moves.Count; i++ {
 		if found && moves.Moves[i] == ttEntry.Move {
@@ -151,7 +153,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 			}
 		}
 
-		board.RestoreState()
+		board.UndoMove(move)
 
 		if ctx.Err() != nil {
 			return bestMove, bestScore
