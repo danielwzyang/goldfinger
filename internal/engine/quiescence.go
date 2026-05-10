@@ -10,7 +10,7 @@ const deltaMargin = 1050
 
 var SEE_PIECE_VALUES = [13]int{100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000, 0}
 
-var qScores [256]int
+var qScoresBuffer [256][256]int
 
 func quiesce(ctx context.Context, alpha, beta int) int {
 	nodes++
@@ -32,7 +32,7 @@ func quiesce(ctx context.Context, alpha, beta int) int {
 	moves := board.MoveList{}
 	board.GenerateAllCaptures(&moves)
 
-	scores := qScores[:moves.Count]
+	scores := qScoresBuffer[ply][:moves.Count]
 	for i := 0; i < moves.Count; i++ {
 		scores[i] = getMVVLVA(moves.Moves[i])
 	}
