@@ -114,6 +114,7 @@ func main() {
 				case "movetime":
 					if i+1 < len(tokens) {
 						movetime, _ = strconv.Atoi(tokens[i+1])
+						i++
 					}
 				case "wtime":
 					if i+1 < len(tokens) {
