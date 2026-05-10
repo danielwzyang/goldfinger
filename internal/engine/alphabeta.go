@@ -142,6 +142,7 @@ func alphaBeta(ctx context.Context, alpha, beta, depth int, allowNull bool) (int
 			if depth >= 3 && legalMoves > 4 && !inCheck &&
 			board.GetCapture(move) == 0 && board.GetPromotion(move) == 0 {
 				reduction = int(1 + 0.5*math.Log1p(float64(depth)) + 0.7*math.Log1p(float64(moveCount)))
+				reduction = min(reduction, depth / 3)
 			}
 
 			_, score = alphaBeta(ctx, -alpha-1, -alpha, depth-1-reduction, true)
